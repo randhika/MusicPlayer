@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <PreferenceCategory android:title="@string/visualization">
+    	<ListPreference
+    	    android:entryValues="@array/songsSortingValues"
+    	    android:entries="@array/songsSortingKeys"
+    	    android:title="@string/songsSorting"
+    	    android:summary="@string/songsSortingSummary"
+    	    android:key="songsSortingMethod"
+    	    android:defaultValue="nat" />
+    	<ListPreference
+    	    android:entryValues="@array/playlistsSortingValues"
+    	    android:entries="@array/playlistsSortingKeys"
+    	    android:title="@string/playlistsSorting"
+    	    android:summary="@string/playlistsSortingSummary"
+    	    android:key="playlistsSortingMethod"
+    	    android:defaultValue="name" />
+    	<ListPreference android:title="@string/titleLines"
+    	    android:summary="@string/titleLinesSummary"
+    	    android:entryValues="@array/titleLinesValues"
+    	    android:entries="@array/titleLinesKeys"
+    	    android:key="titleLines"
+    	    android:defaultValue="2" />
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="@string/startingOptions">
+        <CheckBoxPreference
+			android:key="openLastSongOnStart"
+			android:title="@string/openLastSongOnStart"
+			android:summary="@string/openLastSongOnStartSummary" />
+	    <CheckBoxPreference
+	        android:key="saveSongPosition"
+	        android:title="@string/saveSongPosition"
+	        android:summary="@string/saveSongPositionSummary"
+	        android:dependency="openLastSongOnStart" />
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="@string/otherSettings">
+        <CheckBoxPreference
+			android:key="stopPlayingWhenHeadsetDisconnected"
+			android:title="@string/stopPlayingWhenHeadsetDisconnected"
+			android:summary="@string/stopPlayingWhenHeadsetDisconnectedSummary"
+        	android:defaultValue="true" />
+	    <CheckBoxPreference
+	        android:key="disableLockScreen"
+	        android:title="@string/disableLockScreen"
+	        android:summary="@string/disableLockScreenSummary" />
+	    <CheckBoxPreference
+	        android:key="restartPlaybackAfterPhoneCall"
+	        android:title="@string/restartPlaybackAfterPhoneCall"
+	        android:summary="@string/restartPlaybackAfterPhoneCallSummary" />
+	</PreferenceCategory>
+	
+    <PreferenceCategory android:title="@string/cache">
+        <CheckBoxPreference
+            android:key="enableCache"
+            android:title="@string/enableCache"
+            android:summary="@string/enableCacheSummary"
+            android:defaultValue="true" />
+        <Preference
+            android:key="clearCache"
+            android:title="@string/clearCache"
+            android:summary="@string/clearCacheSummary" />
+        <Preference
+            android:key="indexBaseFolder"
+            android:title="@string/indexBaseFolder"
+            android:summary="@string/indexBaseFolderSummary" />
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="@string/webRadio">
+        <Preference 
+            android:key="importRadio"
+            android:title="@string/importRadio"
+            android:summary="@string/importRadioSummary" />
+        <Preference 
+            android:key="exportRadio"
+            android:title="@string/exportRadio"
+            android:summary="@string/exportRadioSummary" />
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="@string/shakeSensor">
+	    <PreferenceScreen android:title="@string/shakeSensor" android:summary="@string/shakeSensorSummary">
+	        <ListPreference
+	    	    android:entryValues="@array/shakeActionValues"
+	    	    android:entries="@array/shakeActionKeys"
+	    	    android:title="@string/shakeAction"
+	    	    android:summary="@string/shakeActionSummary"
+	    	    android:key="shakeAction"
+	    	    android:defaultValue="playpause" />
+	        <EditTextPreference
+	            android:key="shakeInterval"
+	            android:title="@string/shakeInterval"
+	            android:summary="@string/shakeIntervalSummary"
+	            android:defaultValue="1000"
+	            android:dialogMessage="@string/shakeIntervalMessage" />
+	        <EditTextPreference
+	            android:key="shakeThreshold"
+	            android:title="@string/shakeThreshold"
+	            android:defaultValue="1000"
+	            android:dialogMessage="@string/shakeThresholdMessage" />
+	    </PreferenceScreen>
+	</PreferenceCategory>
+    
+    <PreferenceCategory android:title="@string/about">
+        <Preference
+            android:key="about"
+            android:title="@string/about" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

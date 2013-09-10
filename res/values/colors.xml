@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- http://developer.android.com/design/style/color.html -->
+    <color name="grey">#2C2C2C</color>
+    <color name="light_blue">#E2F4FB</color>
+    <color name="blue">#2f6699</color>
+</resources>

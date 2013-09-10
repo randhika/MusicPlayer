@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="songsSortingValues" translatable="false">
+        <item>nat</item>
+        <item>at</item>
+        <item>ta</item>
+        <item>f</item>
+    </string-array>
+    <string-array name="songsSortingKeys">
+        <item>Track number, artist, title</item>
+        <item>Artist, title</item>
+        <item>Title, artist</item>
+        <item>File name</item>
+    </string-array>
+    
+    <string-array name="playlistsSortingValues" translatable="false">
+        <item>name</item>
+        <item>date</item>
+    </string-array>
+    <string-array name="playlistsSortingKeys">
+        <item>Name</item>
+        <item>Creation date</item>
+    </string-array>
+    
+    <string-array name="titleLinesValues" translatable="false">
+        <item>Auto</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string-array name="titleLinesKeys" translatable="false">
+        <item>Auto</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    
+    <string-array name="shakeActionValues" translatable="false">
+        <item>playpause</item>
+        <item>next</item>
+        <item>previous</item>
+    </string-array>
+    <string-array name="shakeActionKeys">
+        <item>Play/Pause</item>
+        <item>Next song</item>
+        <item>Previous song</item>
+    </string-array>
+</resources>

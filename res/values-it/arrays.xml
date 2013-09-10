@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="songsSortingKeys">
+        <item>Numero traccia, artista, titolo</item>
+        <item>Artista, titolo</item>
+        <item>Titolo, artista</item>
+        <item>Nome file</item>
+    </string-array>
+    
+    <string-array name="playlistsSortingKeys">
+        <item>Nome</item>
+        <item>Data di creazione</item>
+    </string-array>
+    
+    <string-array name="shakeActionKeys">
+        <item>Play/Pause</item>
+        <item>Brano successivo</item>
+        <item>Brano precedente</item>
+	</string-array>
+</resources>
