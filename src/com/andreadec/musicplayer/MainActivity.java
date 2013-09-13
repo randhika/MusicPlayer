@@ -384,33 +384,33 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 					e.printStackTrace();
 				}
 			}
-			return super.onOptionsItemSelected(item);
+			return true;
 		case R.id.menu_addRadio:
 			((RadioFragment)pagerAdapter.getItem(PAGE_RADIO)).newRadio();
-			return super.onOptionsItemSelected(item);
+			return true;
 		case R.id.menu_newPlaylist:
 			editPlaylist(null);
-			return super.onOptionsItemSelected(item);
+			return true;
 		case R.id.menu_gotoPlayingSongDirectory:
 			gotoPlayingSongDirectory();
-			return super.onOptionsItemSelected(item);
+			return true;
 		case R.id.menu_search:
 			if(preferences.getBoolean("enableCache", true)) {
 				startActivityForResult(new Intent(this, SearchActivity.class), 1);
 			} else {
 				Dialogs.showMessageDialog(this, R.string.search, R.string.searchNotPossible);
 			}
-			return super.onOptionsItemSelected(item);
+			return true;
 		case R.id.menu_setAsBaseFolder:
 			setBaseFolder(musicService.getBrowsingDir());
 			return true;
 		case R.id.menu_preferences:
 			Intent intentPreferences = new Intent(this, PreferencesActivity.class);
 			startActivity(intentPreferences);
-			return super.onOptionsItemSelected(item);
+			return true;
 		case R.id.menu_quit: // Close the application
 			quitApplication();
-			return super.onOptionsItemSelected(item);
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
