@@ -349,8 +349,16 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-    	if(viewPager.getCurrentItem()==PAGE_RADIO) menu.findItem(R.id.menu_addRadio).setVisible(true);
-    	else menu.findItem(R.id.menu_addRadio).setVisible(false);
+    	if(viewPager.getCurrentItem()==PAGE_RADIO) {
+    		menu.findItem(R.id.menu_addRadio).setVisible(true);
+    	} else {
+    		menu.findItem(R.id.menu_addRadio).setVisible(false);
+    	}
+    	if(viewPager.getCurrentItem()==PAGE_BROWSER) {
+    		menu.findItem(R.id.menu_setAsBaseFolder).setVisible(true);
+    	} else {
+    		menu.findItem(R.id.menu_setAsBaseFolder).setVisible(false);
+    	}
     	return true;
     }
     
@@ -393,6 +401,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 				Dialogs.showMessageDialog(this, R.string.search, R.string.searchNotPossible);
 			}
 			return super.onOptionsItemSelected(item);
+		case R.id.menu_setAsBaseFolder:
+			setBaseFolder(musicService.getBrowsingDir());
+			return true;
 		case R.id.menu_preferences:
 			Intent intentPreferences = new Intent(this, PreferencesActivity.class);
 			startActivity(intentPreferences);

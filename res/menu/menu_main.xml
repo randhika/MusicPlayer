@@ -17,20 +17,11 @@
 		android:icon="@drawable/list"
 		android:showAsAction="ifRoom|withText" />
 	
-	<!--<group android:checkableBehavior="all">
-	    <item android:id="@+id/menu_shuffle"
-	        android:title="@string/shuffle"
-	        android:icon="@drawable/shuffle" />
-	    <item android:id="@+id/menu_repeat"
-	        android:title="@string/repeat"
-	        android:icon="@drawable/repeat" />
-		<item android:id="@+id/menu_repeatAll"
-	        android:title="@string/repeatAll"
-	        android:icon="@drawable/repeatall" />
-	</group>-->
-	
 	<item android:id="@+id/menu_newPlaylist"
 	    android:title="@string/newPlaylist" />
+	
+	<item android:id="@+id/menu_setAsBaseFolder"
+	    android:title="@string/setAsBaseFolder" />
 	
 	<item android:id="@+id/menu_preferences"
 		android:title="@string/preferences"
