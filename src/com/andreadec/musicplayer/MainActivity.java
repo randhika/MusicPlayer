@@ -401,6 +401,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 				Dialogs.showMessageDialog(this, R.string.search, R.string.searchNotPossible);
 			}
 			return true;
+		case R.id.menu_songInfo:
+			showSongInfo(musicService.getPlayingSong());
+			return true;
 		case R.id.menu_setAsBaseFolder:
 			setBaseFolder(musicService.getBrowsingDir());
 			return true;
@@ -961,5 +964,27 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			@Override public void onNothingSelected(AdapterView<?> parent) {}
 		});
 		builder.show();
+	}
+	
+	private void showSongInfo(Song song) {
+		if(song==null) return;
+		AlertDialog dialog = new AlertDialog.Builder(this).create();
+		dialog.setTitle(R.string.songInfo);
+		View view = getLayoutInflater().inflate(R.layout.layout_songinfo, null, false);
+		TextView textViewSongInfoArtist = (TextView)view.findViewById(R.id.textViewSongInfoArtist);
+		TextView textViewSongInfoTitle = (TextView)view.findViewById(R.id.textViewSongInfoTitle);
+		TextView textViewSongInfoFileName = (TextView)view.findViewById(R.id.textViewSongInfoFileName);
+		TextView textViewSongInfoFileSize = (TextView)view.findViewById(R.id.textViewSongInfoFileSize);
+		textViewSongInfoArtist.setText(song.getArtist());
+		textViewSongInfoTitle.setText(song.getTitle());
+		textViewSongInfoFileName.setText(song.getUri());
+		if(song.isWebRadio()) {
+			
+		} else {
+			textViewSongInfoFileSize.setText(song.getFileSize());
+		}
+		dialog.setView(view);
+		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
+		dialog.show();
 	}
 }

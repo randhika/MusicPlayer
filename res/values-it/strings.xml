@@ -116,6 +116,11 @@
 	<string name="enabled">Abilitato</string>
 	<string name="close">Chiudi</string>
 	<string name="songNotFound">Questa canzone non è più disponibile. Dovresti ricreare la cache.</string>
+	<string name="songInfo">Info sul brano</string>
+	<string name="artist">Artista</string>
+	<string name="title">Titolo</string>
+	<string name="fileName">Nome file</string>
+	<string name="fileSize">Dimensione file</string>
 	
 	<string name="shake">Shake</string>
 	<string name="shakeSensor">Shake sensor</string>

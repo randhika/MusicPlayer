@@ -20,6 +20,9 @@
 	<item android:id="@+id/menu_newPlaylist"
 	    android:title="@string/newPlaylist" />
 	
+	<item android:id="@+id/menu_songInfo"
+	    android:title="@string/songInfo" />
+	
 	<item android:id="@+id/menu_setAsBaseFolder"
 	    android:title="@string/setAsBaseFolder" />
 	

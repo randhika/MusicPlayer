@@ -116,6 +116,11 @@
 	<string name="enabled">Enabled</string>
 	<string name="close">Close</string>
 	<string name="songNotFound">This song is no longer available. You should rebuild songs cache.</string>
+	<string name="songInfo">Song info</string>
+	<string name="artist">Artist</string>
+	<string name="title">Title</string>
+	<string name="fileName">File name</string>
+	<string name="fileSize">File size</string>
 	
 	<string name="shake">Shake</string>
 	<string name="shakeSensor">Shake sensor</string>

@@ -22,9 +22,13 @@ import android.content.*;
 public class Dialogs {
 	/* Builds a simple message dialog */
 	public static void showMessageDialog(Context context, int title, int message) {
+		showMessageDialog(context, title, context.getResources().getString(message));
+	}
+	
+	public static void showMessageDialog(Context context, int title, String message) {
 		AlertDialog dialog = new AlertDialog.Builder(context).create();
 		dialog.setTitle(title);
-		dialog.setMessage(context.getResources().getString(message));
+		dialog.setMessage(message);
 		dialog.setButton(AlertDialog.BUTTON_POSITIVE, context.getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
 		dialog.show();
 	}

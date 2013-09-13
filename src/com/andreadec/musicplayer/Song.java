@@ -17,6 +17,8 @@
 package com.andreadec.musicplayer;
 
 import java.io.*;
+import java.text.DecimalFormat;
+
 import android.media.*;
 
 public class Song implements Serializable {
@@ -82,6 +84,18 @@ public class Song implements Serializable {
 	
 	public boolean isWebRadio() {
 		return webRadio;
+	}
+	
+	public String getFileSize() {
+		try {
+			File file = new File(uri);
+			DecimalFormat df = new DecimalFormat("#.##");
+			double kb = (double)(file.length())/1024.0;
+			if(kb<1024) return df.format(kb) + " KiB";
+			else return df.format(kb/1024.0) + " MiB";
+		} catch(Exception e) {
+			return "";
+		}
 	}
 
 	@Override
