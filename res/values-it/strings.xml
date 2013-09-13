@@ -93,6 +93,7 @@
 	<string name="indexBaseFolder">Indicizza cartella base</string>
 	<string name="indexBaseFolderSummary">Indicizzare la cartella base per ottenere migliori prestazioni e per poter utilizzare la funzione di ricerca. Assicurarsi di aver impostato la cartella base prima di procedere.</string>
 	<string name="indexBaseFolderConfirm">Vuoi indicizzare questa cartella e tutte le sue sottocartelle?</string>
+	<string name="setBaseFolderConfirm">Questa cartella verrà impostata come cartella base. Sei sicuro?</string>
 	<string name="indexingCompleted">Indicizzazione completata.</string>
 	<string name="indexingWait">Indicizzazione in corso&#8230;</string>
 	<string name="baseFolderNotSetTitle">Cartella base non impostata</string>

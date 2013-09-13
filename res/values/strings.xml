@@ -93,6 +93,7 @@
 	<string name="indexBaseFolder">Index base folder</string>
 	<string name="indexBaseFolderSummary">Index base folder to improve performance and use the search function. Make sure you set the base folder before going on.</string>
 	<string name="indexBaseFolderConfirm">Would you like to index this folder and all its subfolders?</string>
+	<string name="setBaseFolderConfirm">This folder will be set as base folder. Are you sure?</string>
 	<string name="indexingCompleted">Indexing completed.</string>
 	<string name="indexingWait">Indexing in progress&#8230;</string>
 	<string name="baseFolderNotSetTitle">Base folder not set</string>

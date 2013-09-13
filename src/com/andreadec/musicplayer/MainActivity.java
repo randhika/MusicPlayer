@@ -682,6 +682,19 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	}
 	
 	public void setBaseFolder(final File folder) {
+		AlertDialog dialog = new AlertDialog.Builder(this).create();
+		dialog.setTitle(R.string.setAsBaseFolder);
+		dialog.setMessage(getResources().getString(R.string.setBaseFolderConfirm));
+		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+		      public void onClick(DialogInterface dialog, int which) {
+		    	  saveBaseFolder(folder);
+		      }
+		});
+		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
+		dialog.show();
+	}
+	
+	private void saveBaseFolder(final File folder) {
 		SharedPreferences.Editor editor = preferences.edit();
 		editor.putString(MusicService.PREFERENCE_BASEFOLDER, folder.getAbsolutePath());
 		editor.commit();
