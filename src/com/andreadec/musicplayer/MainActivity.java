@@ -234,7 +234,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	    		songDurationString = "/" + formatTime(musicService.getDuration());
 	    		
 	    		// Reduce time font size to avoid overflow on small screens
-	    		if(musicService.getDuration()>6000000) { // 100 minutes
+	    		if(musicService.getDuration()>3600000) { // 1 hour
 	    			textViewTime.setTextSize(TypedValue.COMPLEX_UNIT_PX, textViewTimeDefaultTextSize-5);
 	    		} else {
 	    			textViewTime.setTextSize(TypedValue.COMPLEX_UNIT_PX, textViewTimeDefaultTextSize);

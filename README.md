@@ -10,6 +10,7 @@ So I decided to write this application for my personal use and to publish it hop
 - Easily browse songs in folders
 - Manage playlists
 - Web radios playback
+- Playback control from notification panel (Android 4.1+ only)
 - Replay, shuffle
 - Bass booster, equalizer
 - Songs search by title or artist
