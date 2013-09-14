@@ -987,9 +987,15 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		TextView textViewSongInfoArtist = (TextView)view.findViewById(R.id.textViewSongInfoArtist);
 		TextView textViewSongInfoTitle = (TextView)view.findViewById(R.id.textViewSongInfoTitle);
 		TextView textViewSongInfoFileName = (TextView)view.findViewById(R.id.textViewSongInfoFileName);
+		TextView textViewSongInfoTrackNumber = (TextView)view.findViewById(R.id.textViewSongInfoTrackNumber);
 		TextView textViewSongInfoFileSize = (TextView)view.findViewById(R.id.textViewSongInfoFileSize);
 		textViewSongInfoArtist.setText(song.getArtist());
 		textViewSongInfoTitle.setText(song.getTitle());
+		if(song.getTrackNumber()!=null) {
+			textViewSongInfoTrackNumber.setText(song.getTrackNumber().toString());
+		} else {
+			textViewSongInfoTrackNumber.setText("-");
+		}
 		textViewSongInfoFileName.setText(song.getUri());
 		if(song.isWebRadio()) {
 			

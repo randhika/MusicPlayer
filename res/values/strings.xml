@@ -122,6 +122,7 @@
 	<string name="title">Title</string>
 	<string name="fileName">File name</string>
 	<string name="fileSize">File size</string>
+	<string name="trackNumber">Track number</string>
 	
 	<string name="shake">Shake</string>
 	<string name="shakeSensor">Shake sensor</string>
