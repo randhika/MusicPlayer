@@ -19,22 +19,25 @@ package com.andreadec.musicplayer;
 import android.os.*;
 import android.support.v4.app.*;
 import android.view.*;
-import android.view.ContextMenu.ContextMenuInfo;
+import android.view.ContextMenu.*;
 import android.widget.*;
 import android.widget.AdapterView.*;
 
 import com.andreadec.musicplayer.adapters.*;
+import com.mobeta.android.dslv.*;
+import com.mobeta.android.dslv.DragSortListView.*;
 
-public class PlaylistFragment extends Fragment implements OnItemClickListener {
-	private ListView listViewPlaylist;
+public class PlaylistFragment extends Fragment implements OnItemClickListener, DropListener {
+	private DragSortListView listViewPlaylist;
 	private PlaylistArrayAdapter playlistArrayAdapter;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		if (container == null) return null;
-		View view = inflater.inflate(R.layout.layout_browser, container, false);
-		listViewPlaylist = (ListView)view.findViewById(R.id.listViewBrowser);
+		View view = inflater.inflate(R.layout.layout_playlist, container, false);
+		listViewPlaylist = (DragSortListView)view.findViewById(R.id.listViewPlaylist);
 		listViewPlaylist.setOnItemClickListener(this);
+		listViewPlaylist.setDropListener(this);
 		registerForContextMenu(listViewPlaylist);
 		updateListView();
 		return view;
@@ -113,5 +116,11 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener {
 		} else if(item instanceof Playlist) {
 			activity.showPlaylist((Playlist)item);
 		}
+	}
+
+	@Override
+	public void drop(int from, int to) {
+		MainActivity activity = (MainActivity)getActivity();
+		activity.sortPlaylist(from-1, to-1); // -1 is due to first element being link to previous folder
 	}
 }

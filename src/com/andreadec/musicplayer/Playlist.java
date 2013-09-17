@@ -38,7 +38,7 @@ public class Playlist {
 		
 		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(context);
 		SQLiteDatabase db = playlistsDatabase.getReadableDatabase();
-		Cursor cursor = db.rawQuery("SELECT idSong, uri, artist, title FROM SongsInPlaylist WHERE idPlaylist="+id, null);
+		Cursor cursor = db.rawQuery("SELECT idSong, uri, artist, title FROM SongsInPlaylist WHERE idPlaylist="+id+" ORDER BY position", null);
 		while(cursor.moveToNext()) {
 			long songId = cursor.getLong(0);
 			String uri = cursor.getString(1);
@@ -51,15 +51,25 @@ public class Playlist {
 		db.close();
 	}
 	
-	public void addSong(Song song) {
-		long songId = -1;
-		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(context);
-		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
+	private ContentValues getValues(Song song) {
 		ContentValues values = new ContentValues();
 		values.put("idPlaylist", id);
 		values.put("uri", song.getUri());
 		values.put("artist", song.getArtist());
 		values.put("title", song.getTitle());
+		return values;
+	}
+	
+	public void addSong(Song song) {
+		long songId = -1;
+		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(context);
+		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
+		ContentValues values = getValues(song);
+		/*ContentValues values = new ContentValues();
+		values.put("idPlaylist", id);
+		values.put("uri", song.getUri());
+		values.put("artist", song.getArtist());
+		values.put("title", song.getTitle());*/
 		try {
 			songId = db.insertOrThrow("SongsInPlaylist", null, values);
 		} catch(Exception e) {
@@ -78,6 +88,23 @@ public class Playlist {
 		db.delete("SongsInPlaylist", "idSong="+song.getId(), null);
 		db.close();
 		songs.remove(song);
+	}
+	
+	public void sort(int from, int to) {
+		if(to>from) {
+			Collections.rotate(songs.subList(from, to+1), -1);
+		} else {
+			Collections.rotate(songs.subList(to, from+1), +1);
+		}
+		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(context);
+		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
+		for(int i=0; i<songs.size(); i++) {
+			PlaylistSong song = songs.get(i);
+			ContentValues values = getValues(song);
+			values.put("position", i);
+			db.update("SongsInPlaylist", values, "idSong="+song.getId(), null);
+		}
+		db.close();
 	}
 	
 	public void editName(String newName) {

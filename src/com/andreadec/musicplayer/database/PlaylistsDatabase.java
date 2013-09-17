@@ -21,7 +21,7 @@ import android.database.sqlite.*;
 
 public class PlaylistsDatabase extends SQLiteOpenHelper {
 	private static final String DB_NAME = "Playlists";
-	private static final int DB_VERSION = 1;
+	private static final int DB_VERSION = 2;
 	
 	public PlaylistsDatabase(Context context) {
 		super(context, DB_NAME, null, DB_VERSION);
@@ -29,10 +29,15 @@ public class PlaylistsDatabase extends SQLiteOpenHelper {
 	
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.execSQL("CREATE TABLE Playlists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)");
-		db.execSQL("CREATE TABLE SongsInPlaylist (idSong INTEGER, idPlaylist INTEGER, uri TEXT, artist TEXT, title TEXT, PRIMARY KEY(idSong), FOREIGN KEY(idPlaylist) REFERENCES Playlists (id))");
+		db.execSQL("CREATE TABLE Playlists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, position INTEGER DEFAULT 0)");
+		db.execSQL("CREATE TABLE SongsInPlaylist (idSong INTEGER, idPlaylist INTEGER, uri TEXT, artist TEXT, title TEXT, position INTEGER DEFAULT 0, PRIMARY KEY(idSong), FOREIGN KEY(idPlaylist) REFERENCES Playlists (id))");
 	}
 
 	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		if(oldVersion==1 && newVersion==2) {
+			db.execSQL("ALTER TABLE Playlists ADD position INTEGER DEFAULT 0");
+			db.execSQL("ALTER TABLE SongsInPlaylist ADD position INTEGER DEFAULT 0");
+		}
+	}
 }

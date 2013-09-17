@@ -17,9 +17,11 @@
 package com.andreadec.musicplayer.adapters;
 
 import java.util.*;
+
 import android.content.*;
 import android.view.*;
 import android.widget.*;
+
 import com.andreadec.musicplayer.*;
 
 public class PlaylistArrayAdapter extends ArrayAdapter<Object> {
@@ -27,7 +29,7 @@ public class PlaylistArrayAdapter extends ArrayAdapter<Object> {
 	private final ArrayList<Object> values;
 	private Song playingSong;
  
-	public PlaylistArrayAdapter(Context context, ArrayList<Object> values, Song playingSong, String directory) {
+	public PlaylistArrayAdapter(Context context, ArrayList<Object> values, Song playingSong) {
 		super(context, R.layout.song_item, values);
 		this.context = context;
 		this.values = values;

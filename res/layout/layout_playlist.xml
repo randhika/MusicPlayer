@@ -18,14 +18,24 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:dslv="http://schemas.android.com/apk/res/com.andreadec.musicplayer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
+    
+    <com.mobeta.android.dslv.DragSortListView
+        android:id="@+id/listViewPlaylist"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        dslv:float_alpha="0.3"
+        dslv:drag_handle_id="@id/imageViewSongItemImage"
+        dslv:drag_start_mode="onMove" >
+    </com.mobeta.android.dslv.DragSortListView>
 
-    <ListView
+    <!--<ListView
         android:id="@+id/listViewPlaylist"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" >
-    </ListView>
+    </ListView>-->
 
 </LinearLayout>

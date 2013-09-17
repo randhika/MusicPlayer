@@ -591,6 +591,12 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		return musicService.getPlaylists();
 	}
 	
+	public void sortPlaylist(int from, int to) {
+		if(currentPlaylist==null) return;
+		currentPlaylist.sort(from, to);
+		updateListViewPlaylist();
+	}
+	
 	public void updateListViewPlaylist() {
 		Song playingSong = null;
         if(musicService.getPlayingPlaylist()) playingSong = musicService.getPlayingSong();
@@ -602,7 +608,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			values.add(new String(currentPlaylist.getName()));
 			values.addAll(currentPlaylist.getSongs());
 		}
-		PlaylistArrayAdapter playlistArrayAdapter = new PlaylistArrayAdapter(this, values, playingSong, musicService.getBrowsingDir().getAbsolutePath());
+		PlaylistArrayAdapter playlistArrayAdapter = new PlaylistArrayAdapter(this, values, playingSong);
 		PlaylistFragment playlistFragment = (PlaylistFragment)pagerAdapter.getItem(PAGE_PLAYLIST);
 		playlistFragment.setArrayAdapter(playlistArrayAdapter);
 		playlistFragment.updateListView();
