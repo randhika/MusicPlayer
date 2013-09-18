@@ -25,7 +25,7 @@
     android:paddingBottom="2dp" >
 
     <ImageView
-        android:id="@id/imageViewSongItemImage"
+        android:id="@id/imageViewItemImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"

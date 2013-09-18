@@ -413,18 +413,10 @@ public class MusicService extends Service implements OnCompletionListener {
 	/* PLAYLISTS */
 	
 	private void loadPlaylists() {
-		String orderBy = "";
-		String orderByPreference = preferences.getString("playlistsSortingMethod", "name");
-		if(orderByPreference.equals("name")) {
-			orderBy = "name";
-		} else if(orderByPreference.equals("date")) {
-			orderBy = "id";
-		}
-		
 		playlists = new ArrayList<Playlist>();
 		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(this);
 		SQLiteDatabase db = playlistsDatabase.getReadableDatabase();
-		Cursor cursor = db.rawQuery("SELECT id, name FROM Playlists ORDER BY "+orderBy, null);
+		Cursor cursor = db.rawQuery("SELECT id, name FROM Playlists ORDER BY position", null);
 		while(cursor.moveToNext()) {
 			long id = cursor.getLong(0);
 			String name = cursor.getString(1);
@@ -466,6 +458,23 @@ public class MusicService extends Service implements OnCompletionListener {
 		db.delete("Playlists", "id="+playlist.getId(), null);
 		db.close();
 		playlists.remove(playlist);
+	}
+	
+	public void sortPlaylists(int from, int to) {
+		if(to>from) {
+			Collections.rotate(playlists.subList(from, to+1), -1);
+		} else {
+			Collections.rotate(playlists.subList(to, from+1), +1);
+		}
+		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(this);
+		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
+		for(int i=0; i<playlists.size(); i++) {
+			Playlist playlist = playlists.get(i);
+			ContentValues values = new ContentValues();
+			values.put("position", i);
+			db.update("Playlists", values, "id="+playlist.getId(), null);
+		}
+		db.close();
 	}
 
 	private void playSavedSongFromPlaylist(long idSong) {

@@ -592,8 +592,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	}
 	
 	public void sortPlaylist(int from, int to) {
-		if(currentPlaylist==null) return;
-		currentPlaylist.sort(from, to);
+		if(currentPlaylist==null) { // Sorting playlists
+			musicService.sortPlaylists(from, to);
+		} else { // Sorting songs in playlist
+			currentPlaylist.sort(from-1, to-1); // -1 is due to first element being link to previous folder
+		}
 		updateListViewPlaylist();
 	}
 	

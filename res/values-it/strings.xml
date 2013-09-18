@@ -51,8 +51,6 @@
 	<string name="visualization">Visualizzazione</string>
 	<string name="songsSorting">Ordinamento brani</string>
 	<string name="songsSortingSummary">Imposta l\'ordine in cui vengono visualizzati i brani nel browser.</string>
-	<string name="playlistsSorting">Ordinamento playlist</string>
-	<string name="playlistsSortingSummary">Imposta l\'ordine in cui vengono visualizzate le playlist. La modifica potrebbe non essere visibile fino al riavvio dell\'applicazione.</string>
 	<string name="importRadio">Importa</string>
 	<string name="importRadioSummary">Importa informazioni sulle radio da file.</string>
 	<string name="exportRadio">Esporta</string>

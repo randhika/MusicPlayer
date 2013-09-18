@@ -13,15 +13,6 @@
         <item>File name</item>
     </string-array>
     
-    <string-array name="playlistsSortingValues" translatable="false">
-        <item>name</item>
-        <item>date</item>
-    </string-array>
-    <string-array name="playlistsSortingKeys">
-        <item>Name</item>
-        <item>Creation date</item>
-    </string-array>
-    
     <string-array name="titleLinesValues" translatable="false">
         <item>Auto</item>
         <item>1</item>

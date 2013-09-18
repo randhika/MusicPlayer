@@ -51,25 +51,15 @@ public class Playlist {
 		db.close();
 	}
 	
-	private ContentValues getValues(Song song) {
+	public void addSong(Song song) {
+		long songId = -1;
+		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(context);
+		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
 		ContentValues values = new ContentValues();
 		values.put("idPlaylist", id);
 		values.put("uri", song.getUri());
 		values.put("artist", song.getArtist());
 		values.put("title", song.getTitle());
-		return values;
-	}
-	
-	public void addSong(Song song) {
-		long songId = -1;
-		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(context);
-		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
-		ContentValues values = getValues(song);
-		/*ContentValues values = new ContentValues();
-		values.put("idPlaylist", id);
-		values.put("uri", song.getUri());
-		values.put("artist", song.getArtist());
-		values.put("title", song.getTitle());*/
 		try {
 			songId = db.insertOrThrow("SongsInPlaylist", null, values);
 		} catch(Exception e) {
@@ -100,7 +90,7 @@ public class Playlist {
 		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
 		for(int i=0; i<songs.size(); i++) {
 			PlaylistSong song = songs.get(i);
-			ContentValues values = getValues(song);
+			ContentValues values = new ContentValues();
 			values.put("position", i);
 			db.update("SongsInPlaylist", values, "idSong="+song.getId(), null);
 		}

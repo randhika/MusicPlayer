@@ -9,13 +9,6 @@
     	    android:summary="@string/songsSortingSummary"
     	    android:key="songsSortingMethod"
     	    android:defaultValue="nat" />
-    	<ListPreference
-    	    android:entryValues="@array/playlistsSortingValues"
-    	    android:entries="@array/playlistsSortingKeys"
-    	    android:title="@string/playlistsSorting"
-    	    android:summary="@string/playlistsSortingSummary"
-    	    android:key="playlistsSortingMethod"
-    	    android:defaultValue="name" />
     	<ListPreference android:title="@string/titleLines"
     	    android:summary="@string/titleLinesSummary"
     	    android:entryValues="@array/titleLinesValues"

@@ -28,7 +28,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         dslv:float_alpha="0.3"
-        dslv:drag_handle_id="@id/imageViewSongItemImage"
+        dslv:drag_handle_id="@id/imageViewItemImage"
         dslv:drag_start_mode="onMove" >
     </com.mobeta.android.dslv.DragSortListView>
 

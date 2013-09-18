@@ -121,6 +121,6 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener, D
 	@Override
 	public void drop(int from, int to) {
 		MainActivity activity = (MainActivity)getActivity();
-		activity.sortPlaylist(from-1, to-1); // -1 is due to first element being link to previous folder
+		activity.sortPlaylist(from, to);
 	}
 }

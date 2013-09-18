@@ -45,7 +45,7 @@ public class PlaylistArrayAdapter extends ArrayAdapter<Object> {
 			view = inflater.inflate(R.layout.folder_item, parent, false);
 			TextView textViewFolderItemFolder = (TextView)view.findViewById(R.id.textViewFolderItemFolder);
 			textViewFolderItemFolder.setTextColor(view.getResources().getColor(R.color.blue));
-			ImageView imageViewFolderItemImage = (ImageView)view.findViewById(R.id.imageViewFolderItemImage);
+			ImageView imageViewFolderItemImage = (ImageView)view.findViewById(R.id.imageViewItemImage);
 			textViewFolderItemFolder.setText(playlistName);
 			imageViewFolderItemImage.setImageResource(R.drawable.back);
 		} else if(value instanceof PlaylistSong) {
@@ -60,7 +60,7 @@ public class PlaylistArrayAdapter extends ArrayAdapter<Object> {
 			textViewSongItemArtist.setText(song.getArtist());
 			if(song.equals(playingSong)) {
 				view.setBackgroundResource(R.color.light_blue);
-				ImageView imageViewSongItemImage = (ImageView)view.findViewById(R.id.imageViewSongItemImage);
+				ImageView imageViewSongItemImage = (ImageView)view.findViewById(R.id.imageViewItemImage);
 				imageViewSongItemImage.setImageResource(R.drawable.play_blue);
 			}
 		} else if(value instanceof Playlist) {

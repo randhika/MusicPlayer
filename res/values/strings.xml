@@ -51,8 +51,6 @@
 	<string name="visualization">Visualization</string>
 	<string name="songsSorting">Songs sorting</string>
 	<string name="songsSortingSummary">Choose how songs are sorted in the browser.</string>
-	<string name="playlistsSorting">Playlists sorting</string>
-	<string name="playlistsSortingSummary">Choose how to sort playlists. Changes may not be active before application restarts.</string>
 	<string name="importRadio">Import</string>
 	<string name="importRadioSummary">Import radios\' URLs from file.</string>
 	<string name="exportRadio">Export</string>
