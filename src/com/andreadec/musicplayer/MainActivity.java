@@ -568,9 +568,18 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		return playlist;
 	}
 	
-	public void deletePlaylist(Playlist playlist) {
-		musicService.deletePlaylist(playlist);
-		updateListViewPlaylist();
+	public void deletePlaylist(final Playlist playlist) {
+		AlertDialog dialog = new AlertDialog.Builder(this).create();
+		dialog.setTitle(R.string.delete);
+		dialog.setMessage(getResources().getString(R.string.deletePlaylistConfirm));
+		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+		      public void onClick(DialogInterface dialog, int which) {
+		    	  musicService.deletePlaylist(playlist);
+		    	  updateListViewPlaylist();
+		      }
+		});
+		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
+		dialog.show();
 	}
 	
 	public void addSongToPlaylist(Playlist playlist, Song song) {

@@ -83,6 +83,7 @@
 	<string name="addedToPlaylist">Aggiunta alla playlist</string>
 	<string name="newPlaylist">Nuova playlist</string>
 	<string name="editPlaylist">Modifica playlist</string>
+	<string name="deletePlaylistConfirm">Sei sicuro di voler eliminare questa playlist?</string>
 	<string name="errorPlaylistName">You must insert a name for the playlist!</string>
 	<string name="titleLines">Righe per il titolo</string>
 	<string name="titleLinesSummary">Quante righe usare per mostrare i titoli delle canzoni.</string>
