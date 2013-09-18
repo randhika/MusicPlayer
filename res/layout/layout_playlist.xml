@@ -27,7 +27,8 @@
         android:id="@+id/listViewPlaylist"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        dslv:float_alpha="0.3"
+        dslv:float_alpha="0.6"
+        dslv:float_background_color="@color/light_blue"
         dslv:drag_handle_id="@id/imageViewItemImage"
         dslv:drag_start_mode="onMove" >
     </com.mobeta.android.dslv.DragSortListView>
