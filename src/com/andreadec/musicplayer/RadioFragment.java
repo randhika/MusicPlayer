@@ -102,7 +102,7 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 	private void deleteRadio(final Song radio) {
 		AlertDialog dialog = new AlertDialog.Builder(getActivity()).create();
 		dialog.setTitle(R.string.delete);
-		dialog.setMessage(getResources().getString(R.string.deleteConfirm));
+		dialog.setMessage(getResources().getString(R.string.deleteRadioConfirm));
 		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
 		      public void onClick(DialogInterface dialog, int which) {
 		    	  SQLiteDatabase db = webRadioDatabase.getWritableDatabase();
