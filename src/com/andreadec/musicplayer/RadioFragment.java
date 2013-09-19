@@ -61,11 +61,13 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, view, menuInfo);
+		int position = ((AdapterContextMenuInfo)menuInfo).position;
 		MenuInflater inflater = getActivity().getMenuInflater();
 		inflater.inflate(R.menu.contextmenu_editdelete, menu);
+		menu.setHeaderTitle(adapter.getItem(position).getTitle());
 	}
 	
-	public boolean onContextItemSelectedRadio (MenuItem item) {
+	public boolean onContextItemSelectedRadio(MenuItem item) {
 		int position = ((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position;
 		switch (item.getItemId()) {
 		case R.id.menu_edit:
@@ -117,7 +119,7 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 	
 	private void editRadio(final Song oldSong) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		int title = oldSong==null ? R.string.newUrl : R.string.edit;
+		int title = oldSong==null ? R.string.addRadio : R.string.edit;
 		builder.setTitle(getResources().getString(title));
 		final View view = getActivity().getLayoutInflater().inflate(R.layout.layout_editwebradio, null);
 		builder.setView(view);

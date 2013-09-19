@@ -1,3 +1,21 @@
+<!--
+/*
+ * Copyright 2012-2013 Andrea De Cesare
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
 <resources>
     <string name="app_name">Music Player</string>
     <string name="webRadio">Radio Web</string>
@@ -13,7 +31,6 @@
     <string name="errorSongMessage">Si è verificato un errore nell\'apertura del file.</string>
     <string name="noSong">Nessuna canzone aperta</string>
     <string name="url">URL</string>
-    <string name="newUrl">Aggiungi nuovo URL</string>
     <string name="go">Vai</string>
     <string name="edit">Modifica</string>
     <string name="delete">Elimina</string>
@@ -85,6 +102,7 @@
 	<string name="noPlaylists">Non ci sono playlist.\n\nScegli \"Nuova playlist\" dal menu per crearne una!</string>
 	<string name="newPlaylist">Nuova playlist</string>
 	<string name="editPlaylist">Modifica playlist</string>
+	<string name="removeFromPlaylist">Rimuovi dalla playlist</string>
 	<string name="deletePlaylistConfirm">Sei sicuro di voler eliminare questa playlist?</string>
 	<string name="errorPlaylistName">You must insert a name for the playlist!</string>
 	<string name="titleLines">Righe per il titolo</string>

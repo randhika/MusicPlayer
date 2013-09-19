@@ -48,14 +48,19 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener, D
 	public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
 		int position = ((AdapterContextMenuInfo)menuInfo).position;
 		
-		if(playlistArrayAdapter.getItem(position) instanceof String) return;
+		Object item = playlistArrayAdapter.getItem(position);
+		if(item instanceof String) return;
 		
 		super.onCreateContextMenu(menu, view, menuInfo);
 		MenuInflater inflater = getActivity().getMenuInflater();
 		inflater.inflate(R.menu.contextmenu_editdelete, menu);
-		menu.setHeaderTitle(R.string.editPlaylist);
-		
-		if(playlistArrayAdapter.getItem(position) instanceof PlaylistSong) {
+
+		if(item instanceof Playlist) {
+			menu.setHeaderTitle(((Playlist)item).getName());
+		} else if(item instanceof PlaylistSong) {
+			PlaylistSong song = (PlaylistSong)item;
+			menu.setHeaderTitle(song.getArtist()+" - "+song.getTitle());
+			menu.findItem(R.id.menu_delete).setTitle(R.string.removeFromPlaylist);
 			menu.removeItem(R.id.menu_edit);
 		}
 	}
