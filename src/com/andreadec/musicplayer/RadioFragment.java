@@ -50,6 +50,7 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 		View view = inflater.inflate(R.layout.layout_webradio, container, false);
 		listViewRadio = (ListView)view.findViewById(R.id.listViewRadio);
 		listViewRadio.setOnItemClickListener(this);
+		listViewRadio.setEmptyView(view.findViewById(R.id.listViewRadioEmpty));
 		registerForContextMenu(listViewRadio);
 		updateListView();
 		return view;

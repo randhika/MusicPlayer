@@ -33,10 +33,11 @@
         dslv:drag_start_mode="onMove" >
     </com.mobeta.android.dslv.DragSortListView>
 
-    <!--<ListView
-        android:id="@+id/listViewPlaylist"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" >
-    </ListView>-->
+    <TextView android:id="@+id/listViewPlaylistEmpty"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:padding="15dp"
+		android:gravity="center_horizontal"
+		android:text="@string/noPlaylists"/>
 
 </LinearLayout>

@@ -77,10 +77,12 @@
 	<string name="playlist">Playlist</string>
 	<string name="radio">Radio</string>
 	<string name="addRadio">Aggiungi radio</string>
+	<string name="noPlaylists">Non ci sono radio memorizzate.\n\nScegli \"Aggiungi radio\" dal menu per inserirne una!</string>
 	<string name="addToPlaylist">Aggiungi alla playlist</string>
 	<string name="addingSongsToPlaylist">Aggiunta canzoni alla playlist in corso&#8230;</string>
 	<string name="addFolderToPlaylist">Aggiungi contenuto della cartella alla playlist</string>
 	<string name="addedToPlaylist">Aggiunta alla playlist</string>
+	<string name="noPlaylists">Non ci sono playlist.\n\nScegli \"Nuova playlist\" dal menu per crearne una!</string>
 	<string name="newPlaylist">Nuova playlist</string>
 	<string name="editPlaylist">Modifica playlist</string>
 	<string name="deletePlaylistConfirm">Sei sicuro di voler eliminare questa playlist?</string>

@@ -38,6 +38,7 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener, D
 		listViewPlaylist = (DragSortListView)view.findViewById(R.id.listViewPlaylist);
 		listViewPlaylist.setOnItemClickListener(this);
 		listViewPlaylist.setDropListener(this);
+		listViewPlaylist.setEmptyView(view.findViewById(R.id.listViewPlaylistEmpty));
 		registerForContextMenu(listViewPlaylist);
 		updateListView();
 		return view;
