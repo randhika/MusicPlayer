@@ -30,13 +30,15 @@ import android.view.ContextMenu.*;
 import android.widget.AdapterView.*;
 import android.widget.*;
 
+import com.andreadec.musicplayer.adapters.*;
 import com.andreadec.musicplayer.database.*;
 
 public class RadioFragment extends Fragment implements OnItemClickListener {
 	private ListView listViewRadio;
 	private WebRadioDatabase webRadioDatabase;
-	private ArrayList<String> urls;
-	private ArrayList<String> names;
+	/*private ArrayList<String> urls;
+	private ArrayList<String> names;*/
+	private RadioArrayAdapter adapter;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -67,10 +69,10 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 		int position = ((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position;
 		switch (item.getItemId()) {
 		case R.id.menu_edit:
-			editRadio(urls.get(position), names.get(position));
+			editRadio(adapter.getItem(position));
 			return true;
 		case R.id.menu_delete:
-			deleteRadio(urls.get(position));
+			deleteRadio(adapter.getItem(position));
 			return true;
 		}
 		return false;
@@ -79,33 +81,30 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 	private void updateListView() {
 		SQLiteDatabase db = webRadioDatabase.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT url, name FROM WebRadio ORDER BY NAME", null);
-        urls = new ArrayList<String>();
-        names = new ArrayList<String>();
-
+        ArrayList<Song> radios = new ArrayList<Song>();
         while (cursor.moveToNext()) {
-        	urls.add(cursor.getString(0));
-        	names.add(cursor.getString(1));
+        	Song radio = new Song(cursor.getString(0));
+        	radio.setTitle(cursor.getString(1));
+        	radios.add(radio);
         }
         db.close();
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, names);
-        listViewRadio.setAdapter(arrayAdapter);
+        adapter = new RadioArrayAdapter(getActivity(), radios);
+        listViewRadio.setAdapter(adapter);
 	}
 	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		Song song = new Song(urls.get(position));
-		song.setTitle(names.get(position));
-		((MainActivity)getActivity()).playRadio(song);
+		((MainActivity)getActivity()).playRadio(adapter.getItem(position));
 	}
 	
-	private void deleteRadio(final String url) {
+	private void deleteRadio(final Song radio) {
 		AlertDialog dialog = new AlertDialog.Builder(getActivity()).create();
 		dialog.setTitle(R.string.delete);
 		dialog.setMessage(getResources().getString(R.string.deleteConfirm));
 		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
 		      public void onClick(DialogInterface dialog, int which) {
 		    	  SQLiteDatabase db = webRadioDatabase.getWritableDatabase();
-		    	  db.delete("WebRadio", "url = '" + url + "'", null);
+		    	  db.delete("WebRadio", "url = '" + radio.getUri() + "'", null);
 		    	  db.close();
 		    	  updateListView();
 		      }
@@ -116,17 +115,19 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 		dialog.show();
 	}
 	
-	private void editRadio(final String oldUrl, final String oldName) {
+	private void editRadio(final Song oldSong) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		int title = oldUrl==null ? R.string.newUrl : R.string.edit;
+		int title = oldSong==null ? R.string.newUrl : R.string.edit;
 		builder.setTitle(getResources().getString(title));
 		final View view = getActivity().getLayoutInflater().inflate(R.layout.layout_editwebradio, null);
 		builder.setView(view);
 		
 		final EditText editTextUrl = (EditText)view.findViewById(R.id.editTextUrl);
 		final EditText editTextName = (EditText)view.findViewById(R.id.editTextName);
-		if(oldUrl!=null) editTextUrl.setText(oldUrl);
-		if(oldName!=null) editTextName.setText(oldName);
+		if(oldSong!=null) {
+			editTextUrl.setText(oldSong.getUri());
+			editTextName.setText(oldSong.getTitle());
+		}
 		
 		builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
@@ -138,9 +139,9 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 				}
 	        	if(name.equals("")) name = url;
 	        	
-	        	if(oldUrl!=null) {
+	        	if(oldSong!=null) {
 		        	SQLiteDatabase db = webRadioDatabase.getWritableDatabase();
-		        	db.delete("WebRadio", "url = '" + oldUrl + "'", null);
+		        	db.delete("WebRadio", "url = '" + oldSong.getUri() + "'", null);
 		        	db.close();
 	        	}
 
@@ -164,6 +165,6 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 	}
 	
 	public void newRadio() {
-		editRadio(null, null);
+		editRadio(null);
 	}
 }
