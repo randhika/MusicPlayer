@@ -18,12 +18,14 @@ package com.andreadec.musicplayer;
 
 import java.io.File;
 import java.util.*;
+
 import android.annotation.SuppressLint;
 import android.app.*;
 import android.content.*;
 import android.database.*;
 import android.database.sqlite.*;
 import android.os.*;
+import android.preference.PreferenceManager;
 import android.view.*;
 import android.view.View.*;
 import android.widget.*;
@@ -36,12 +38,33 @@ public class SearchActivity extends Activity implements OnClickListener, OnItemC
 	private EditText editTextSearch;
 	private Button buttonSearch;
 	private ListView listViewSearch;
+	private SharedPreferences preferences;
 	
 	@SuppressLint("NewApi")
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_search);
+        
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        
+        if(preferences.getBoolean("showHelpOverlayIndexing", true)) {
+        	final FrameLayout frameLayout = new FrameLayout(this);
+        	LayoutInflater layoutInflater = getLayoutInflater();
+        	layoutInflater.inflate(R.layout.layout_search, frameLayout);
+        	layoutInflater.inflate(R.layout.layout_helpoverlay_indexing, frameLayout);
+        	final View overlayView = frameLayout.getChildAt(1);
+        	overlayView.setOnClickListener(new OnClickListener() {
+				@Override public void onClick(View v) {
+					frameLayout.removeView(overlayView);
+					SharedPreferences.Editor editor = preferences.edit();
+					editor.putBoolean("showHelpOverlayIndexing", false);
+					editor.commit();
+				}
+        	});
+        	setContentView(frameLayout);
+        } else {
+        	setContentView(R.layout.layout_search);
+        }
         
         if(Build.VERSION.SDK_INT >= 11) {
 			getActionBar().setHomeButtonEnabled(true);

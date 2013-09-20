@@ -94,7 +94,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         	overlayView.setOnClickListener(new OnClickListener() {
 				@Override public void onClick(View v) {
 					frameLayout.removeView(overlayView);
-					// TODO: Save this in preferences so that it won't be shown again
+					SharedPreferences.Editor editor = preferences.edit();
+					editor.putBoolean("showHelpOverlayMainActivity", false);
+					editor.commit();
 				}
         	});
         	setContentView(frameLayout);
