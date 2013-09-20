@@ -47,7 +47,7 @@ public class SearchActivity extends Activity implements OnClickListener, OnItemC
         
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         
-        if(preferences.getBoolean("showHelpOverlayIndexing", true)) {
+        if(preferences.getBoolean("showHelpOverlayIndexing", true) && preferences.getString(MusicService.PREFERENCE_BASEFOLDER, "/").equals("/")) {
         	final FrameLayout frameLayout = new FrameLayout(this);
         	LayoutInflater layoutInflater = getLayoutInflater();
         	layoutInflater.inflate(R.layout.layout_search, frameLayout);

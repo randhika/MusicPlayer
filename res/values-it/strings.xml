@@ -158,7 +158,7 @@
 	<!-- Overlay helper -->
 	<string name="overlayMain1">Music Player</string>
 	<string name="overlayMain2">Scorri a destra o sinistra per passare alle cartelle, alle playlist ed alle radio web.</string>
-	<string name="overlayIndexing">Per migliorare i tempi di caricamento ed abilitare la ricerca delle canzoni, questa app deve indicizzare la cartella della musica. Per fare ciò vai nella cartella principale dove hai la tua musica e scegli \"Imposta come cartella base\" dal menu.</string>
+	<string name="overlayIndexing">Per migliorare i tempi di caricamento ed abilitare la ricerca delle canzoni, questa app deve indicizzare la cartella della musica.\n\nPer fare ciò vai nella cartella principale dove hai la tua musica e scegli \"Imposta come cartella base\" dal menu.</string>
 	
 	<!-- Strings for about page -->
 	<string name="license">Licenza</string>
