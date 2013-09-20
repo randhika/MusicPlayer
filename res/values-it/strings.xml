@@ -155,6 +155,9 @@
 	<string name="shakeThreshold">Sensibilità del sensore</string>
 	<string name="shakeThresholdMessage">Usare valori bassi per aumentare la sensibilità. Per applicare questa impostazione è necessario riavviare l\'applicazione!</string>
 	
+	<!-- Overlay helper -->
+	<string name="overlayMain">Benvenuto nel Music Player.</string>
+	
 	<!-- Strings for about page -->
 	<string name="license">Licenza</string>
 	<string name="specialThanks">Un ringraziamento speciale a</string>

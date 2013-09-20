@@ -155,6 +155,9 @@
 	<string name="shakeThreshold">Shake sensor threshold</string>
 	<string name="shakeThresholdMessage">Use low values for higher sensibility. To apply this setting you need to restart the application!</string>
 	
+	<!-- Overlay helper -->
+	<string name="overlayMain">Welcome to Music Player.</string>
+	
 	<!-- Strings for about page -->
 	<string name="license">License</string>
 	<string name="specialThanks">Special thanks to</string>

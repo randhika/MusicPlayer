@@ -83,8 +83,24 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         	getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD); // Disable lock screen for this activity
         }
         
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);        
-        setContentView(R.layout.layout_main);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        
+        if(preferences.getBoolean("showHelpOverlayMainActivity", true)) {
+        	final FrameLayout frameLayout = new FrameLayout(this);
+        	LayoutInflater layoutInflater = getLayoutInflater();
+        	layoutInflater.inflate(R.layout.layout_main, frameLayout);
+        	layoutInflater.inflate(R.layout.layout_helpoverlay_main, frameLayout);
+        	final View overlayView = frameLayout.getChildAt(1);
+        	overlayView.setOnClickListener(new OnClickListener() {
+				@Override public void onClick(View v) {
+					frameLayout.removeView(overlayView);
+					// TODO: Save this in preferences so that it won't be shown again
+				}
+        	});
+        	setContentView(frameLayout);
+        } else {
+        	setContentView(R.layout.layout_main);
+        }
         
     	textViewArtist = (TextView)findViewById(R.id.textViewArtist);
         textViewTitle = (TextView)findViewById(R.id.textViewTitle);
