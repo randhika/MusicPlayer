@@ -33,7 +33,7 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener, D
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		if (container == null) return null;
+		if(container==null) return null;
 		View view = inflater.inflate(R.layout.layout_playlist, container, false);
 		listViewPlaylist = (DragSortListView)view.findViewById(R.id.listViewPlaylist);
 		listViewPlaylist.setOnItemClickListener(this);

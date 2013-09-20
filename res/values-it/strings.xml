@@ -99,7 +99,7 @@
 	<string name="addingSongsToPlaylist">Aggiunta canzoni alla playlist in corso&#8230;</string>
 	<string name="addFolderToPlaylist">Aggiungi contenuto della cartella alla playlist</string>
 	<string name="addedToPlaylist">Aggiunta alla playlist</string>
-	<string name="noPlaylists">Non ci sono playlist.\n\nScegli \"Nuova playlist\" dal menu per crearne una!</string>
+	<string name="noPlaylists">Non ci sono playlist.\n\nScegli \"Nuova playlist\" dal menu per crearne una!\n\nPoi, per aggiungere una canzone, tieni premuto su di essa nel browser.</string>
 	<string name="newPlaylist">Nuova playlist</string>
 	<string name="editPlaylist">Modifica playlist</string>
 	<string name="removeFromPlaylist">Rimuovi dalla playlist</string>
@@ -156,7 +156,7 @@
 	<string name="shakeThresholdMessage">Usare valori bassi per aumentare la sensibilità. Per applicare questa impostazione è necessario riavviare l\'applicazione!</string>
 	
 	<!-- Overlay helper -->
-	<string name="overlayMain1">Benvenuto nel Music Player.</string>
+	<string name="overlayMain1">Music Player</string>
 	<string name="overlayMain2">Scorri a destra o sinistra per passare alle cartelle, alle playlist ed alle radio web.</string>
 	<string name="overlayIndexing">Per migliorare i tempi di caricamento ed abilitare la ricerca delle canzoni, questa app deve indicizzare la cartella della musica. Per fare ciò vai nella cartella principale dove hai la tua musica e scegli \"Imposta come cartella base\" dal menu.</string>
 	

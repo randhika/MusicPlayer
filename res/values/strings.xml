@@ -99,7 +99,7 @@
 	<string name="addingSongsToPlaylist">Adding songs to playlist&#8230;</string>
 	<string name="addedToPlaylist">Added to playlist</string>
 	<string name="addFolderToPlaylist">Add folder content to playlist</string>
-	<string name="noPlaylists">There are no playlists yet.\n\nChoose \"New playlist\" from the menu to create one!</string>
+	<string name="noPlaylists">There are no playlists yet.\n\nChoose \"New playlist\" from the menu to create one!\n\nThen, to add a song, long press on it in the browser.</string>
 	<string name="newPlaylist">New playlist</string>
 	<string name="editPlaylist">Edit playlist</string>
 	<string name="removeFromPlaylist">Remove from playlist</string>
