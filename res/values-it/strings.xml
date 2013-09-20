@@ -156,7 +156,8 @@
 	<string name="shakeThresholdMessage">Usare valori bassi per aumentare la sensibilità. Per applicare questa impostazione è necessario riavviare l\'applicazione!</string>
 	
 	<!-- Overlay helper -->
-	<string name="overlayMain">Benvenuto nel Music Player.</string>
+	<string name="overlayMain1">Benvenuto nel Music Player.</string>
+	<string name="overlayMain2">Scorri a destra o sinistra per passare alle cartelle, alle playlist ed alle radio web.</string>
 	
 	<!-- Strings for about page -->
 	<string name="license">Licenza</string>
