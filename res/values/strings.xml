@@ -19,7 +19,6 @@
 <resources>
     <string name="app_name">Music Player</string>
     <string name="webRadio">Web Radio</string>
-    <string name="lyrics">Lyrics</string>
 	<string name="quit">Quit</string>
 	<string name="quitApp">Quit app</string>
     <string name="shuffle">Shuffle</string>
@@ -41,7 +40,6 @@
 	<string name="errorNetwork">Error retrieving data!</string>
 	<string name="loading">Loading&#8230;</string>
 	<string name="loadingRadio">Loading %1$s&#8230;</string>
-	<string name="errorImpossibleLyrics">No song opened. Please open a song to search for its lyrics.</string>
 	<string name="errorWebRadio">Error opening web radio</string>
 	<string name="errorWebRadioMessage">It is impossible to play this web radio. Please check if the URL is correct and if you are connected to the internet.</string>
 	<string name="notFound">Not found</string>

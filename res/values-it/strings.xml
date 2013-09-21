@@ -19,7 +19,6 @@
 <resources>
     <string name="app_name">Music Player</string>
     <string name="webRadio">Radio Web</string>
-    <string name="lyrics">Testo</string>
 	<string name="quit">Esci</string>
 	<string name="quitApp">Chiudi app</string>
     <string name="shuffle">Casuale</string>
@@ -41,7 +40,6 @@
 	<string name="errorNetwork">Errore nel download!</string>
 	<string name="loading">Caricamento&#8230;</string>
 	<string name="loadingRadio">Caricamento di %1$s&#8230;</string>
-	<string name="errorImpossibleLyrics">Nessuna canzone aperta. Apri una canzone per cercarne il testo.</string>
 	<string name="errorWebRadio">Errore nell\'apertura della radio web</string>
 	<string name="errorWebRadioMessage">Si è verificato un errore nella riproduzione di questa radio web. Verifica che lo URL inserito sia corretto e che la connessione ad internet sia attiva.</string>
 	<string name="notFound">Non trovato</string>

@@ -29,11 +29,6 @@
 	    android:title="@string/gotoPlayingSongDirectory"
 	    android:icon="@drawable/pin"
 	    android:showAsAction="ifRoom|withText" />
-    
-	<item android:id="@+id/menu_lyrics"
-		android:title="@string/lyrics"
-		android:icon="@drawable/list"
-		android:showAsAction="ifRoom|withText" />
 	
 	<item android:id="@+id/menu_newPlaylist"
 	    android:title="@string/newPlaylist" />

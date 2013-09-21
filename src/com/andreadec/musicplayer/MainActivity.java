@@ -17,11 +17,9 @@
 package com.andreadec.musicplayer;
 
 import java.io.*;
-import java.net.URLEncoder;
 import java.util.*;
 
 import android.media.AudioManager;
-import android.net.Uri;
 import android.os.*;
 import android.preference.*;
 import android.support.v4.view.*;
@@ -384,25 +382,6 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     @Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.menu_lyrics: // Get lyrics
-			Song song = musicService.getPlayingSong();
-			if(song==null) {
-				Dialogs.showMessageDialog(this, R.string.error, R.string.errorImpossibleLyrics);
-			} else {
-				String query = "";
-				if(!song.getArtist().equals("")) query += song.getArtist() + " ";
-				if(!song.getTitle().equals("")) query += song.getTitle().replace(".mp3", "");
-				query += " lyrics";
-				try {
-					String url = "https://www.google.com/search?q="+URLEncoder.encode(query, "UTF-8");
-					Intent intentLyrics = new Intent(Intent.ACTION_VIEW);
-					intentLyrics.setData(Uri.parse(url));
-					startActivity(intentLyrics);
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-			}
-			return true;
 		case R.id.menu_addRadio:
 			((RadioFragment)pagerAdapter.getItem(PAGE_RADIO)).newRadio();
 			return true;
