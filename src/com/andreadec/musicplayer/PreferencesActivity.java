@@ -29,15 +29,14 @@ import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
+import android.app.*;
 import android.content.*;
-import android.database.Cursor;
+import android.database.*;
 import android.database.sqlite.*;
 import android.os.*;
 import android.preference.*;
 import android.preference.Preference.*;
-import android.util.Log;
-import android.util.Xml;
+import android.util.*;
 import android.view.*;
 import android.widget.*;
 
@@ -94,16 +93,16 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 	@Override
 	public boolean onPreferenceClick(Preference preference) {
 		if(preference.equals(preferenceClearCache)) {
-			AlertDialog dialog = new AlertDialog.Builder(this).create();
-			dialog.setTitle(R.string.clearCache);
-			dialog.setMessage(getResources().getString(R.string.clearCacheConfirm));
-			dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.clearCache);
+			builder.setMessage(R.string.clearCacheConfirm);
+			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 			      public void onClick(DialogInterface dialog, int which) {
 			    	  clearCache();
 			      }
 			});
-			dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
-			dialog.show();
+			builder.setNegativeButton(R.string.no, null);
+			builder.show();
 			return true;
 		} else if(preference.equals(preferenceIndexBaseFolder)) {
 			String baseFolder = preferences.getString(MusicService.PREFERENCE_BASEFOLDER, "/");

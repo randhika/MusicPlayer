@@ -568,17 +568,17 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	}
 	
 	public void deletePlaylist(final Playlist playlist) {
-		AlertDialog dialog = new AlertDialog.Builder(this).create();
-		dialog.setTitle(R.string.delete);
-		dialog.setMessage(getResources().getString(R.string.deletePlaylistConfirm));
-		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.delete);
+		builder.setMessage(R.string.deletePlaylistConfirm);
+		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 		      public void onClick(DialogInterface dialog, int which) {
 		    	  musicService.deletePlaylist(playlist);
 		    	  updateListViewPlaylist();
 		      }
 		});
-		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
-		dialog.show();
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
 	}
 	
 	public void addSongToPlaylist(Playlist playlist, Song song) {
@@ -700,16 +700,16 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	}
 	
 	public void setBaseFolder(final File folder) {
-		AlertDialog dialog = new AlertDialog.Builder(this).create();
-		dialog.setTitle(R.string.setAsBaseFolder);
-		dialog.setMessage(getResources().getString(R.string.setBaseFolderConfirm));
-		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.setAsBaseFolder);
+		builder.setMessage(R.string.setBaseFolderConfirm);
+		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 		      public void onClick(DialogInterface dialog, int which) {
 		    	  saveBaseFolder(folder);
 		      }
 		});
-		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
-		dialog.show();
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
 	}
 	
 	private void saveBaseFolder(final File folder) {
@@ -717,18 +717,18 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		editor.putString(MusicService.PREFERENCE_BASEFOLDER, folder.getAbsolutePath());
 		editor.commit();
 		
-		AlertDialog dialog = new AlertDialog.Builder(this).create();
-		dialog.setTitle(R.string.setAsBaseFolder);
-		dialog.setMessage(getResources().getString(R.string.indexBaseFolderConfirm));
-		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.setAsBaseFolder);
+		builder.setMessage(R.string.indexBaseFolderConfirm);
+		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 		      public void onClick(DialogInterface dialog, int which) {
 		    	  Intent indexIntent = new Intent(MainActivity.this, IndexFolderService.class);
 		    	  indexIntent.putExtra("folder", folder.getAbsolutePath());
 		    	  startService(indexIntent);
 		      }
 		});
-		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
-		dialog.show();
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
 	}
 	
 	/* Back button click handler. Overwrites default behaviour. */
