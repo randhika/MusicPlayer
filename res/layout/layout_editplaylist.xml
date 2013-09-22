@@ -21,14 +21,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-    
     <EditText
         android:id="@+id/editTextPlaylistName"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:hint="@string/name"
-        android:textAppearance="?android:attr/textAppearanceLarge" >
-        <requestFocus />
-	</EditText>
-
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 </LinearLayout>

@@ -162,8 +162,9 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 		});
 		
 		builder.setNegativeButton(R.string.cancel, null);
-		
-		builder.show();
+		AlertDialog dialog = builder.create();
+		dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+		dialog.show();
 	}
 	
 	public void newRadio() {
