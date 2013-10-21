@@ -17,20 +17,22 @@
 package com.andreadec.musicplayer;
 
 import java.io.*;
+
 import com.andreadec.musicplayer.database.*;
 import com.andreadec.musicplayer.filters.*;
+
 import android.app.*;
 import android.content.*;
 import android.database.sqlite.*;
+import android.os.*;
 import android.support.v4.app.*;
 
 /* This service indexes a folder and all its subfolders */
 /* The operation may require some time, depending on the number of audio files in the directories */
 public class IndexFolderService extends IntentService {
-	private final static int ONGOING_NOTIFICATION_ID = 2;
-	private final static int COMPLETION_NOTIFICATION_ID = 3;
 	private NotificationManager notificationManager;
 	private Notification notification;
+	private SQLiteDatabase db;
 	
 	public IndexFolderService() {
 		super("IndexFolderService");
@@ -41,34 +43,47 @@ public class IndexFolderService extends IntentService {
 		super.onCreate();
 		notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
 		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
-		notificationBuilder.setSmallIcon(R.drawable.audio_white);
+		notificationBuilder.setSmallIcon(android.R.drawable.stat_sys_download);
 		notificationBuilder.setContentTitle(getResources().getString(R.string.app_name));
 		notificationBuilder.setContentText(getResources().getString(R.string.indexingWait));
 		notificationBuilder.setOngoing(true);
 		notification = notificationBuilder.build();
-		notificationManager.notify(ONGOING_NOTIFICATION_ID, notification);
+		notificationManager.notify(Constants.NOTIFICATION_INDEXING_ONGOING, notification);
 	}
 	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		notificationManager.cancel(ONGOING_NOTIFICATION_ID);		
+		notificationManager.cancel(Constants.NOTIFICATION_INDEXING_ONGOING);		
 		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
-		notificationBuilder.setSmallIcon(R.drawable.audio_white);
+		notificationBuilder.setSmallIcon(android.R.drawable.stat_sys_download_done);
 		notificationBuilder.setContentTitle(getResources().getString(R.string.app_name));
 		notificationBuilder.setContentText(getResources().getString(R.string.indexingCompleted));
-		notificationManager.notify(COMPLETION_NOTIFICATION_ID, notificationBuilder.build());
+		notificationManager.notify(Constants.NOTIFICATION_INDEXING_COMPLETED, notificationBuilder.build());
 	}
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		File folder = new File(intent.getStringExtra("folder"));
-		clearSongsDatabase();
-		index(folder);
+		PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
+		PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IndexFolderService");
+		wakeLock.acquire();
+		
+		try {
+			SongsDatabase songsDatabase = new SongsDatabase();
+			db = songsDatabase.getWritableDatabase();
+			
+			File folder = new File(intent.getStringExtra("folder"));
+			clearSongsDatabase();
+			index(folder);
+			
+			db.close();
+		} catch(Exception e) {} // Just to be sure the wake lock is always released, also if something wrong happens.
+		
+		wakeLock.release();
 	}
 
 	private void clearSongsDatabase() {
-		SQLiteDatabase db = new SongsDatabase(getApplicationContext()).getWritableDatabase();
+		SQLiteDatabase db = new SongsDatabase().getWritableDatabase();
 		db.delete("Songs", "", null);
 		db.close();
 	}
@@ -83,12 +98,9 @@ public class IndexFolderService extends IntentService {
 			}
 		}
 		
-		SongsDatabase songsDatabase = new SongsDatabase(getApplicationContext());
-		SQLiteDatabase db = songsDatabase.getWritableDatabase();
-		
 		for (File file : files) {
 			String uri = file.getAbsolutePath();
-			Song song = new Song(file.getAbsolutePath());
+			BrowserSong song = new BrowserSong(file.getAbsolutePath(), null);
 			ContentValues values = new ContentValues();
 			values.put("uri", uri);
 			values.put("artist", song.getArtist());
@@ -96,9 +108,8 @@ public class IndexFolderService extends IntentService {
 			Integer trackNumber = song.getTrackNumber();
 			if(trackNumber==null) trackNumber=-1;
 			values.put("trackNumber", trackNumber);
+			values.put("hasImage", song.hasImage());
 			db.insertWithOnConflict("Songs", null, values, SQLiteDatabase.CONFLICT_REPLACE);
 		}
-	
-		db.close();
 	}
 }

@@ -62,20 +62,20 @@
 	<string name="disableLockScreen">Disabilita schermata di sblocco</string>
 	<string name="saveSongPosition">Salva posizione brano</string>
 	<string name="saveSongPositionSummary">Salva la posizione raggiunta nell\'ultimo brano prima della chiusura dell\'applicazione.</string>
-	<string name="visualization">Visualizzazione</string>
+	<string name="appearance">Aspetto</string>
 	<string name="songsSorting">Ordinamento brani</string>
 	<string name="songsSortingSummary">Imposta l\'ordine in cui vengono visualizzati i brani nel browser.</string>
-	<string name="importRadio">Importa</string>
-	<string name="importRadioSummary">Importa informazioni sulle radio da file.</string>
-	<string name="exportRadio">Esporta</string>
-	<string name="exportRadioSummary">Esporta informazioni sulle radio su file.</string>
+	<string name="importMsg">Importa</string>
+	<string name="importSummary">Importa informazioni su radio e podcat da file.</string>
+	<string name="export">Esporta</string>
+	<string name="exportSummary">Esporta informazioni su radio e podcast su file.</string>
 	<string name="importSuccess">Importazione completata.</string>
 	<string name="importError">Si è verificato un errore durante l\'importazione.</string>
 	<string name="exportSuccess">Esportazione completata.</string>
 	<string name="exportError">Si è verificato un errore durante l\'esportazione.</string>
 	<string name="otherSettings">Altre impostazioni</string>
-	<string name="importConfirm">Importare la lista delle radio dal file %1$s?</string>
-	<string name="exportConfirm">Esportare la lista delle radio nel file %1$s?</string>
+	<string name="importConfirm">Importare dal file %1$s?</string>
+	<string name="exportConfirm">Esportare nel file %1$s?</string>
 	<string name="cache">Cache</string>
 	<string name="enableCache">Abilita cache</string>
 	<string name="enableCacheSummary">Se abilitato, inserisce le informazioni sui brani all\'interno di una cache per permettere un\'apertura più veloce delle cartelle ed abilitare la ricerca delle canzoni.</string>
@@ -92,12 +92,10 @@
 	<string name="radio">Radio</string>
 	<string name="addRadio">Aggiungi radio</string>
 	<string name="deleteRadioConfirm">Eliminare questa radio?</string>
-	<string name="noRadios">Non ci sono radio memorizzate.\n\nScegli \"Aggiungi radio\" dal menu per inserirne una!</string>
 	<string name="addToPlaylist">Aggiungi alla playlist</string>
 	<string name="addingSongsToPlaylist">Aggiunta canzoni alla playlist in corso&#8230;</string>
 	<string name="addFolderToPlaylist">Aggiungi contenuto della cartella alla playlist</string>
 	<string name="addedToPlaylist">Aggiunta alla playlist</string>
-	<string name="noPlaylists">Non ci sono playlist.\n\nScegli \"Nuova playlist\" dal menu per crearne una!\n\nPoi, per aggiungere una canzone, tieni premuto su di essa nel browser.</string>
 	<string name="newPlaylist">Nuova playlist</string>
 	<string name="editPlaylist">Modifica playlist</string>
 	<string name="removeFromPlaylist">Rimuovi dalla playlist</string>
@@ -140,7 +138,40 @@
 	<string name="fileName">Nome file</string>
 	<string name="fileSize">Dimensione file</string>
 	<string name="trackNumber">Numero di traccia</string>
+	<string name="status">Stato</string>
+	<string name="errorInvalidName">Deve essere inserito un nome!</string>
+	<string name="gotoBaseFolder">Vai alla cartella base</string>
+	<string name="stopDownload">Interrompi download</string>
+	<string name="showSongImage">Mostra immagine brano</string>
+	<string name="pressAgainToQuitApp">Premi nuovamente per uscire</string>
+	<string name="enableBackDoublePressToQuitApp">Tasto indietro per uscire</string>
+	<string name="enableBackDoublePressToQuitAppSummary">Chiudi l\'applicazione premendo due volte il tasto indietro.</string>
+	<string name="smallPageIndicator">Usa indicatore di pagina ridotto</string>
 	
+	<!-- Podcasts -->
+	<string name="podcast">Podcast</string>
+	<string name="podcasts">Podcast</string>
+	<string name="addPodcast">Aggiungi podcast</string>
+	<string name="removePodcastConfirm">Eliminare questo podcast?</string>
+	<string name="update">Aggiorna</string>
+	<string name="updatingPodcast">Aggiornamento podcast in corso&#8230;</string>
+	<string name="podcastStatusNew">Nuovo</string>
+	<string name="podcastStatusDownloaded">Scaricato</string>
+	<string name="podcastStatusDownloading">Download in corso&#8230;</string>
+	<string name="podcastDownloading">Download podcast: %1$s</string>
+	<string name="podcastDownloadError">Si è verificato un errore durante il download del podcast.</string>
+	<string name="podcastDownloadNoWifiConfirm">Non si è connessi ad una rete WiFi. Continuare con il download?</string>
+	<string name="podcastsDirectory">Percorso download podcast</string>
+	<string name="podcastsDirectorySummary">La cartella dove verranno scaricati i podcast.</string>
+	<string name="importExport">Importazione/esportazione</string>
+	<string name="podcastNameError">Deve essere inserito un nome per il podcast!</string>
+	<string name="podcastDirectoryNotExist">La cartella dove scaricare i podcast non esiste. Verifica le impostazioni.</string>
+	<string name="removeDownloadedPodcasts">Elimina podcast scaricati</string>
+	<string name="removeAllDownloadedPodcastsConfirm">Eliminare tutti i podcast scaricati?</string>
+	<string name="removeDownloadedPodcastItems">Eliminare tutti gli episodi scaricati del podcast %1$s?</string>
+	<string name="removeDownloadedPodcastsCompletion">Podcast scaricati eliminati</string>
+	
+	<!-- Shake sensor -->
 	<string name="shake">Shake</string>
 	<string name="shakeSensor">Shake sensor</string>
 	<string name="shakeSensorSummary">Configura il sensore di movimento del dispositivo.</string>
@@ -152,6 +183,7 @@
 	<string name="shakeIntervalMessage">Tempo in millisecondi. Per applicare questa impostazione è necessario riavviare l\'applicazione!</string>
 	<string name="shakeThreshold">Sensibilità del sensore</string>
 	<string name="shakeThresholdMessage">Usare valori bassi per aumentare la sensibilità. Per applicare questa impostazione è necessario riavviare l\'applicazione!</string>
+	<string name="restartToApply">Per applicare questa impostazione è necessario riavviare l\'applicazione!</string>
 	
 	<!-- Overlay helper -->
 	<string name="overlayMain1">Music Player</string>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Andrea De Cesare
+ * Copyright 2013 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,12 @@
 
 package com.andreadec.musicplayer;
 
-import android.app.*;
-import android.content.*;
+import android.support.v4.app.*;
+import android.view.*;
 
-public class Dialogs {
-	/* Builds a simple message dialog */
-	public static void showMessageDialog(Context context, int title, int message) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(context);
-		builder.setTitle(title);
-		builder.setMessage(message);
-		builder.setPositiveButton(R.string.ok, null);
-		builder.show();
-	}
+public abstract class MusicPlayerFragment extends Fragment {
+	public abstract boolean onBackPressed(); // Return false if no action was executed
+	public abstract boolean onContextItemSelected(MenuItem item);
+	public abstract void gotoPlayingItemPosition(PlayableItem playingItem);
+	public abstract void updateListView();
 }

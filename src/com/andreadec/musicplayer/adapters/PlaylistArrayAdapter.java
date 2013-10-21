@@ -18,58 +18,120 @@ package com.andreadec.musicplayer.adapters;
 
 import java.util.*;
 
-import android.content.*;
+import android.graphics.*;
+import android.graphics.drawable.*;
+import android.support.v4.util.*;
 import android.view.*;
 import android.widget.*;
 
 import com.andreadec.musicplayer.*;
 
 public class PlaylistArrayAdapter extends ArrayAdapter<Object> {
-	private final Context context;
 	private final ArrayList<Object> values;
-	private Song playingSong;
+	private PlaylistSong playingSong;
+	private boolean showSongImage;
+	private LruCache<String,Bitmap> imagesCache;
+	private int listImageSize;
+	private LayoutInflater inflater;
+	private Drawable songImage;
+	private final static int TYPE_ACTION=0, TYPE_PLAYLIST=1, TYPE_SONG=2;
  
-	public PlaylistArrayAdapter(Context context, ArrayList<Object> values, Song playingSong) {
-		super(context, R.layout.song_item, values);
-		this.context = context;
+	public PlaylistArrayAdapter(MainActivity activity, ArrayList<Object> values, PlaylistSong playingSong) {
+		super(activity, R.layout.song_item, values);
 		this.values = values;
 		this.playingSong = playingSong;
+		this.imagesCache = activity.getImagesCache();
+		showSongImage = activity.getShowSongImage();
+		listImageSize = (int)activity.getResources().getDimension(R.dimen.listImageSize);
+		inflater = activity.getLayoutInflater();
+		songImage = activity.getResources().getDrawable(R.drawable.audio);
+	}
+	
+	@Override
+	public int getViewTypeCount() {
+		return 3;
+	}
+	@Override
+	public int getItemViewType(int position) {
+		Object value = values.get(position);
+		if(value instanceof Action) return TYPE_ACTION;
+		else if(value instanceof Playlist) return TYPE_PLAYLIST;
+		else if(value instanceof PlaylistSong) return TYPE_SONG;
+		return -1;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public View getView(int position, View view, ViewGroup parent) {
 		Object value = values.get(position);
-		if (value instanceof String) {
-			String playlistName = (String)value;
-			LayoutInflater inflater = ((MainActivity) context).getLayoutInflater();
-			view = inflater.inflate(R.layout.folder_item, parent, false);
-			TextView textViewFolderItemFolder = (TextView)view.findViewById(R.id.textViewFolderItemFolder);
-			textViewFolderItemFolder.setTextColor(view.getResources().getColor(R.color.blue));
-			ImageView imageViewFolderItemImage = (ImageView)view.findViewById(R.id.imageViewItemImage);
-			textViewFolderItemFolder.setText(playlistName);
-			imageViewFolderItemImage.setImageResource(R.drawable.back);
-		} else if(value instanceof PlaylistSong) {
+		ViewHolder viewHolder;
+		int type = getItemViewType(position);
+		if(view==null) {
+			viewHolder = new ViewHolder();
+			if(type==TYPE_ACTION) {
+				view = inflater.inflate(R.layout.action_item, parent, false);
+				viewHolder.title = (TextView)view.findViewById(R.id.textView);
+				viewHolder.image = (ImageView)view.findViewById(R.id.imageView);
+			} else if(type==TYPE_PLAYLIST) {
+				view = inflater.inflate(R.layout.folder_item, parent, false);
+				viewHolder.title = (TextView)view.findViewById(R.id.textViewFolderItemFolder);
+				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
+			} else if(type==TYPE_SONG) {
+				view = inflater.inflate(R.layout.song_item, parent, false);
+				viewHolder.title = (TextView)view.findViewById(R.id.textViewSongItemTitle);
+				viewHolder.artist = (TextView)view.findViewById(R.id.textViewSongItemArtist);
+				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
+			}
+		} else {
+			viewHolder = (ViewHolder)view.getTag();
+		}
+		
+		
+		if(type==TYPE_ACTION) {
+			Action action = (Action)value;
+			viewHolder.title.setText(action.msg);
+			if(action.action==Action.ACTION_GO_BACK) {
+				viewHolder.image.setImageResource(R.drawable.back);
+			} else if(action.action==Action.ACTION_NEW) {
+				viewHolder.image.setImageResource(R.drawable.newcontent);
+			}
+		} else if(type==TYPE_PLAYLIST) {
+			Playlist playlist = (Playlist)value;
+			viewHolder.title.setText(playlist.getName());
+			viewHolder.image.setImageResource(R.drawable.playlist);
+		} else if(type==TYPE_SONG) {
 			PlaylistSong song = (PlaylistSong)value;
-			LayoutInflater inflater = ((MainActivity) context).getLayoutInflater();
-			view = inflater.inflate(R.layout.song_item, parent, false);
-			TextView textViewSongItemTitle = (TextView)view.findViewById(R.id.textViewSongItemTitle);
-			TextView textViewSongItemArtist = (TextView)view.findViewById(R.id.textViewSongItemArtist);
-			String trackNumber = "";
-			if(song.getTrackNumber()!=null) trackNumber = song.getTrackNumber() + ". ";
-			textViewSongItemTitle.setText(trackNumber + song.getTitle());
-			textViewSongItemArtist.setText(song.getArtist());
+			viewHolder.title.setText(song.getTitle());
+			viewHolder.artist.setText(song.getArtist());
+			
 			if(song.equals(playingSong)) {
 				view.setBackgroundResource(R.color.light_blue);
-				ImageView imageViewSongItemImage = (ImageView)view.findViewById(R.id.imageViewItemImage);
-				imageViewSongItemImage.setImageResource(R.drawable.play_blue);
+				viewHolder.image.setImageResource(R.drawable.play_blue);
+			} else {
+				view.setBackgroundDrawable(null);
+				if(showSongImage) {
+					viewHolder.image.setImageDrawable(songImage);
+					if(song.hasImage()) {
+						Bitmap image;
+						synchronized(imagesCache) {
+							image = imagesCache.get(song.getPlayableUri());
+						}
+						if(image!=null) {
+							viewHolder.image.setImageBitmap(image);
+						}
+						else new ImageLoaderTask(song, viewHolder.image, imagesCache, listImageSize).execute();
+					}
+				}
 			}
-		} else if(value instanceof Playlist) {
-			Playlist playlist = (Playlist)value;
-			LayoutInflater inflater = ((MainActivity) context).getLayoutInflater();
-			view = inflater.inflate(R.layout.folder_item, parent, false);
-			TextView textViewFolderItemFolder = (TextView)view.findViewById(R.id.textViewFolderItemFolder);
-			textViewFolderItemFolder.setText(playlist.getName());
 		}
+		
+		view.setTag(viewHolder);
 		return view;
+	}
+	
+	private class ViewHolder {
+		public TextView artist;
+		public TextView title;
+		public ImageView image;
 	}
 }

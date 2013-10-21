@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
 /*
  * Copyright 2012-2013 Andrea De Cesare
  *
@@ -13,25 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+-->
 
-package com.andreadec.musicplayer.database;
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
 
-import android.content.*;
-import android.database.sqlite.*;
+    <ListView
+        android:id="@+id/listViewPodcasts"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
 
-public class WebRadioDatabase extends SQLiteOpenHelper {
-	private static final String DB_NAME = "WebRadio";
-	private static final int DB_VERSION = 1;
-	
-	public WebRadioDatabase(Context context) {
-		super(context, DB_NAME, null, DB_VERSION);
-	}
-	
-	@Override
-	public void onCreate(SQLiteDatabase db) {
-		db.execSQL("CREATE TABLE WebRadio (url TEXT PRIMARY KEY, name TEXT)");
-	}
-
-	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
-}
+</LinearLayout>

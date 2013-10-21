@@ -20,4 +20,5 @@
 
 <resources>
 	<dimen name="textViewTimeSize">20sp</dimen>
+	<dimen name="listImageSize">40dp</dimen>
 </resources>

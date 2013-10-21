@@ -4,71 +4,10 @@
         android:layout_height="match_parent" >
 
 	<LinearLayout
+	    android:id="@+id/linearLayoutInformation"
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
 	    android:orientation="vertical"
-	    android:padding="5dp" >
-	
-	    <TextView
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="@string/artist"
-	        android:textAppearance="?android:attr/textAppearanceMedium" />
-	
-	    <TextView
-	        android:id="@+id/textViewSongInfoArtist"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:paddingBottom="5dp" />
-	
-	    <TextView
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="@string/title"
-	        android:textAppearance="?android:attr/textAppearanceMedium" />
-	
-	    <TextView
-	        android:id="@+id/textViewSongInfoTitle"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:paddingBottom="5dp" />
-	    
-	    <TextView
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="@string/trackNumber"
-	        android:textAppearance="?android:attr/textAppearanceMedium" />
-	
-	    <TextView
-	        android:id="@+id/textViewSongInfoTrackNumber"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:paddingBottom="5dp" />
-	    
-	    <TextView
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="@string/fileName"
-	        android:textAppearance="?android:attr/textAppearanceMedium" />
-	
-	    <TextView
-	        android:id="@+id/textViewSongInfoFileName"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:paddingBottom="5dp" />
-	    
-	    <TextView
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="@string/fileSize"
-	        android:textAppearance="?android:attr/textAppearanceMedium" />
-	
-	    <TextView
-	        android:id="@+id/textViewSongInfoFileSize"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:paddingBottom="5dp" />
-	
-	</LinearLayout>
+	    android:padding="5dp" />
 
 </ScrollView>

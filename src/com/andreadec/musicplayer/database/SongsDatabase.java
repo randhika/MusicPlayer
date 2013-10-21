@@ -16,22 +16,26 @@
 
 package com.andreadec.musicplayer.database;
 
-import android.content.*;
+import com.andreadec.musicplayer.MusicPlayerApplication;
 import android.database.sqlite.*;
 
 public class SongsDatabase extends SQLiteOpenHelper {
 	private static final String DB_NAME = "Songs";
-	private static final int DB_VERSION = 1;
+	private static final int DB_VERSION = 2;
 	
-	public SongsDatabase(Context context) {
-		super(context, DB_NAME, null, DB_VERSION);
+	public SongsDatabase() {
+		super(MusicPlayerApplication.getContext(), DB_NAME, null, DB_VERSION);
 	}
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.execSQL("CREATE TABLE Songs (uri TEXT PRIMARY KEY, artist TEXT, title TEXT, trackNumber INTEGER)");
+		db.execSQL("CREATE TABLE Songs (uri TEXT PRIMARY KEY, artist TEXT, title TEXT, trackNumber INTEGER, hasImage INTEGER)");
 	}
 
 	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		if(oldVersion==1 && newVersion==2) {
+			db.execSQL("ALTER TABLE Songs ADD hasImage INTEGER DEFAULT 1");
+		}
+	}
 }

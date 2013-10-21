@@ -20,15 +20,15 @@ import java.util.*;
 import com.andreadec.musicplayer.*;
 
 /* Helper class to compare songs, used to sort them */
-public class SongsComparator implements Comparator<Song> {
+public class BrowserSongsComparator implements Comparator<BrowserSong> {
 	String sortingMethod;
 
-	public SongsComparator(String sortingMethod) {
+	public BrowserSongsComparator(String sortingMethod) {
 		this.sortingMethod = sortingMethod;
 	}
 	
 	@Override
-	public int compare(Song s1, Song s2) {
+	public int compare(BrowserSong s1, BrowserSong s2) {
 		if(sortingMethod.equals("nat")) {
 			if(s1.getTrackNumber()!=null && s2.getTrackNumber()!=null) return s1.getTrackNumber().compareTo(s2.getTrackNumber()); 
 			if(s1.getArtist().equals(s2.getArtist())) return s1.getTitle().compareTo(s2.getTitle());

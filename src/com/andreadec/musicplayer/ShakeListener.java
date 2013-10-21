@@ -40,7 +40,7 @@ public class ShakeListener implements SensorEventListener {
 		preferences = PreferenceManager.getDefaultSharedPreferences(musicService.getApplicationContext());
 		sensorManager = (SensorManager)musicService.getSystemService(Context.SENSOR_SERVICE);
 		
-		String shakeIntervalString = preferences.getString("shakeInterval", null);
+		String shakeIntervalString = preferences.getString(Constants.PREFERENCE_SHAKEINTERVAL, Constants.DEFAULT_SHAKEINTERVAL);
 		if(shakeIntervalString==null) {
 			shakeInterval = 1000;
 		} else {
@@ -51,7 +51,7 @@ public class ShakeListener implements SensorEventListener {
 			}
 		}
 		
-		String shakeThresholdString = preferences.getString("shakeThreshold", null);
+		String shakeThresholdString = preferences.getString(Constants.PREFERENCE_SHAKETHRESHOLD, Constants.DEFAULT_SHAKETHRESHOLD);
 		if(shakeThresholdString==null) {
 			shakeThreshold = 1000;
 		} else {
@@ -93,13 +93,13 @@ public class ShakeListener implements SensorEventListener {
 	 
 			float speed = Math.abs(x+y+z - last_x - last_y - last_z) / diffTime * 10000;
 			if (speed > shakeThreshold) {
-				String shakeAction = preferences.getString("shakeAction", "playpause");
+				String shakeAction = preferences.getString(Constants.PREFERENCE_SHAKEACTION, Constants.DEFAULT_SHAKEACTION);
 				if(shakeAction.equals("playpause")) {
 					musicService.playPause();
 				} else if(shakeAction.equals("next")) {
-					musicService.nextSong();
+					musicService.nextItem();
 				} else if(shakeAction.equals("previous")) {
-					musicService.previousSong();
+					musicService.previousItem();
 				}
 			    lastShake = currTime;
 			}

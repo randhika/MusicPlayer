@@ -17,16 +17,20 @@
 package com.andreadec.musicplayer;
 
 import java.io.*;
+import java.net.URLDecoder;
 import java.util.*;
 
 import android.media.AudioManager;
 import android.os.*;
 import android.preference.*;
+import android.support.v4.util.LruCache;
 import android.support.v4.view.*;
+import android.support.v4.view.ViewPager.*;
 import android.support.v4.app.*;
 import android.app.*;
 import android.content.*;
 import android.content.DialogInterface.OnCancelListener;
+import android.graphics.Bitmap;
 import android.util.*;
 import android.view.*;
 import android.view.View.*;
@@ -35,39 +39,42 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.CompoundButton.*;
 import android.widget.SeekBar.*;
 
-import com.andreadec.musicplayer.adapters.*;
-
 public class MainActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener {
-	private final static int PAGE_BROWSER=0, PAGE_PLAYLIST=1, PAGE_RADIO=2;
+	private final static int PAGE_BROWSER=0, PAGE_PLAYLISTS=1, PAGE_RADIOS=2, PAGE_PODCASTS=3;
 	
 	private TextView textViewArtist, textViewTitle, textViewTime;
 	private ImageButton imageButtonPrevious, imageButtonPlayPause, imageButtonNext, imageButtonToggleExtendedMenu;
 	private SeekBar seekBar;
 	private View extendedMenu;
+	private ImageView imageViewSongImage;
 	private ImageButton imageButtonShuffle, imageButtonRepeat, imageButtonRepeatAll;
 	private Button buttonBassBoost, buttonEqualizer, buttonShake;
 	private MusicService musicService; // The application service
 	private Intent serviceIntent;
 	private BroadcastReceiver broadcastReceiver;
-	
 	private SharedPreferences preferences;
 	
 	private static final int POLLING_INTERVAL = 450; // Refresh time of the seekbar
 	private boolean pollingThreadRunning; // true if thread is active, false otherwise
 	private boolean startPollingThread = true;
 	private boolean showRemainingTime = false;
+	private boolean showSongImage;
 	
 	// Variables used to reduce computing on polling thread
-	private boolean isWebRadio = false;
+	private boolean isLengthAvailable = false;
 	private String songDurationString = "";
 	private float textViewTimeDefaultTextSize;
 	
-	private Playlist currentPlaylist = null;
-	
-	List<android.support.v4.app.Fragment> fragments;
-	List<String> fragmentsTitles;
+	private List<android.support.v4.app.Fragment> fragments;
+	private List<String> fragmentsTitles;
 	private PagerAdapter pagerAdapter;
 	private ViewPager viewPager;
+	
+	private LruCache<String,Bitmap> imagesCache;
+	
+	private String intentFile;
+	
+	
 	
 	/* Initializes the activity. */
     @Override
@@ -77,13 +84,13 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
         
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        if(preferences.getBoolean("disableLockScreen", false)) {
+        if(preferences.getBoolean(Constants.PREFERENCE_DISABLELOCKSCREEN, Constants.DEFAULT_DISABLELOCKSCREEN)) {
         	getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD); // Disable lock screen for this activity
         }
         
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         
-        if(preferences.getBoolean("showHelpOverlayMainActivity", true)) {
+        if(preferences.getBoolean(Constants.PREFERENCE_SHOWHELPOVERLAYMAINACTIVITY, true)) {
         	final FrameLayout frameLayout = new FrameLayout(this);
         	LayoutInflater layoutInflater = getLayoutInflater();
         	layoutInflater.inflate(R.layout.layout_main, frameLayout);
@@ -93,7 +100,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 				@Override public void onClick(View v) {
 					frameLayout.removeView(overlayView);
 					SharedPreferences.Editor editor = preferences.edit();
-					editor.putBoolean("showHelpOverlayMainActivity", false);
+					editor.putBoolean(Constants.PREFERENCE_SHOWHELPOVERLAYMAINACTIVITY, false);
 					editor.commit();
 				}
         	});
@@ -105,6 +112,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     	textViewArtist = (TextView)findViewById(R.id.textViewArtist);
         textViewTitle = (TextView)findViewById(R.id.textViewTitle);
         textViewTime = (TextView)findViewById(R.id.textViewTime);
+        imageViewSongImage = (ImageView)findViewById(R.id.imageViewSongImage);
         imageButtonPrevious = (ImageButton)findViewById(R.id.imageButtonPrevious);
         imageButtonPlayPause = (ImageButton)findViewById(R.id.imageButtonPlayPause);
         imageButtonNext = (ImageButton)findViewById(R.id.imageButtonNext);
@@ -138,17 +146,38 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     	fragments.add(android.support.v4.app.Fragment.instantiate(this, BrowserFragment.class.getName()));
         fragments.add(android.support.v4.app.Fragment.instantiate(this, PlaylistFragment.class.getName()));
         fragments.add(android.support.v4.app.Fragment.instantiate(this, RadioFragment.class.getName()));
+        fragments.add(android.support.v4.app.Fragment.instantiate(this, PodcastsFragment.class.getName()));
         fragmentsTitles = new Vector<String>();
         fragmentsTitles.add(getResources().getString(R.string.browser));
         fragmentsTitles.add(getResources().getString(R.string.playlist));
         fragmentsTitles.add(getResources().getString(R.string.radio));
+        fragmentsTitles.add(getResources().getString(R.string.podcasts));
         
         pagerAdapter = new PagerAdapter(getSupportFragmentManager(), fragments, fragmentsTitles);
-        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager = (ViewPager)findViewById(R.id.pager);
         viewPager.setAdapter(pagerAdapter);
+        viewPager.setOnPageChangeListener(new OnPageChangeListener() {
+			@Override public void onPageScrollStateChanged(int arg0) {}
+			@Override public void onPageScrolled(int arg0, float arg1, int arg2) {}
+			@Override public void onPageSelected(int position) {
+				MusicPlayerFragment fragment = (MusicPlayerFragment)(pagerAdapter.getItem(position));
+				fragment.updateListView();
+			}
+        	
+        });
+        
+        if(preferences.getBoolean(Constants.PREFERENCE_SMALLPAGEINDICATOR, Constants.DEFAULT_SMALLPAGEINDICATOR)) {
+        	viewPager.removeView(findViewById(R.id.pagerTabStrip));
+        } else {
+        	viewPager.removeView(findViewById(R.id.pagerTitleStrip));
+        }
+        
+        showSongImage = preferences.getBoolean(Constants.PREFERENCE_SHOWSONGIMAGE, Constants.DEFAULT_SHOWSONGIMAGE);
+        imagesCache = new LruCache<String,Bitmap>(Constants.IMAGES_CACHE_SIZE);
         
         serviceIntent = new Intent(this, MusicService.class);
         startService(serviceIntent); // Starts the service if it is not running
+        loadSongFromIntent();
     }
     
     /* Activity comes foreground */
@@ -169,19 +198,24 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     	IntentFilter intentFilter = new IntentFilter();
     	intentFilter.addAction("com.andreadec.musicplayer.newsong");
     	intentFilter.addAction("com.andreadec.musicplayer.playpausechanged");
+    	intentFilter.addAction("com.andreadec.musicplayer.podcastdownloadcompleted");
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
             	if(intent.getAction().equals("com.andreadec.musicplayer.newsong")) {
-            		updatePlayingSong();
+            		updatePlayingItem();
             	} else if(intent.getAction().equals("com.andreadec.musicplayer.playpausechanged")) {
             		updatePlayPauseButton();
+            	} else if(intent.getAction().equals("com.andreadec.musicplayer.podcastdownloadcompleted")) {
+            		if(viewPager.getCurrentItem()==PAGE_PODCASTS) {
+            			PodcastsFragment podcastsFragment = (PodcastsFragment)pagerAdapter.getItem(PAGE_PODCASTS);
+            			podcastsFragment.updateListView(true);
+            		}
             	}
 
             }
         };
         registerReceiver(broadcastReceiver, intentFilter);
-        
         updatePlayPauseButton();
     }
     
@@ -193,41 +227,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     	unregisterReceiver(broadcastReceiver); // Disable broadcast receiver
     }
     
-    public SongsArrayAdapter getBrowserAdapter() {
-    	if(musicService==null) return null;
-    	ArrayList<File> browsingSubdirs = musicService.getBrowsingSubdirs();
-        ArrayList<Song> browsingSongs = musicService.getBrowsingSongs();
-        ArrayList<Object> items = new ArrayList<Object>();
-        items.add(".."); // Add the button to come back to the parent directory
-        items.addAll(browsingSubdirs);
-        items.addAll(browsingSongs);
-        Song playingSong = musicService.getPlayingSong();
-        SongsArrayAdapter songsArrayAdapter = new SongsArrayAdapter(this, items, playingSong, musicService.getBrowsingDir().getAbsolutePath());
-        return songsArrayAdapter;
-    }
-    
-    /* Updates the files' list. */
-    private void updateListViewBrowser(boolean restoreOldPosition) {
-    	ArrayList<File> browsingSubdirs = musicService.getBrowsingSubdirs();
-        ArrayList<Song> browsingSongs = musicService.getBrowsingSongs();
-        ArrayList<Object> items = new ArrayList<Object>();
-        items.add(".."); // Add the button to come back to the parent directory
-        items.addAll(browsingSubdirs);
-        items.addAll(browsingSongs);
-        Song playingSong = null;
-        if(!musicService.getPlayingPlaylist()) playingSong = musicService.getPlayingSong();
-        SongsArrayAdapter songsArrayAdapter = new SongsArrayAdapter(this, items, playingSong, musicService.getBrowsingDir().getAbsolutePath());
-        
-        BrowserFragment browserFragment = (BrowserFragment)pagerAdapter.getItem(PAGE_BROWSER);
-        browserFragment.setSongsArrayAdapter(songsArrayAdapter);
-        browserFragment.updateListView(restoreOldPosition);
-    }
-    
     /* Updates information about the current song. */
-    private void updatePlayingSong() {
-    	Song playingSong = musicService.getPlayingSong();
+    private void updatePlayingItem() {
+    	PlayableItem playingItem = musicService.getCurrentPlayingItem();
     	
-    	String titleLines = preferences.getString("titleLines", "2");
+    	String titleLines = preferences.getString(Constants.PREFERENCE_TITLELINES, Constants.DEFAULT_TITLELINES);
     	if(titleLines.equals("Auto")) {
     		textViewTitle.setMinLines(1);
     		textViewTitle.setMaxLines(5);
@@ -235,19 +239,16 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     		textViewTitle.setLines(Integer.parseInt(titleLines));
     	}
     	
-    	if(playingSong!=null) {
+    	if(playingItem!=null) {
     		// Song loaded
-	    	textViewTitle.setText(playingSong.getTitle());
-	    	textViewArtist.setText(playingSong.getArtist());
+	    	textViewTitle.setText(playingItem.getTitle());
+	    	textViewArtist.setText(playingItem.getArtist());
 	    	seekBar.setMax(musicService.getDuration());
 	    	seekBar.setProgress(musicService.getCurrentPosition());
 	    	seekBar.setClickable(true);
-	    	isWebRadio = playingSong.isWebRadio();
-	    	if(isWebRadio) {
-	    		songDurationString = "";
-	    		seekBar.setVisibility(SeekBar.GONE);
-	    	} else {
-	    		songDurationString = "/" + formatTime(musicService.getDuration());
+	    	isLengthAvailable = playingItem.isLengthAvailable();
+	    	if(isLengthAvailable) {
+	    		songDurationString = "/" + Utils.formatTime(musicService.getDuration());
 	    		
 	    		// Reduce time font size to avoid overflow on small screens
 	    		if(musicService.getDuration()>3600000) { // 1 hour
@@ -257,6 +258,21 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	    		}
 	    		
 	    		seekBar.setVisibility(SeekBar.VISIBLE);
+	    	} else {
+	    		songDurationString = "";
+	    		seekBar.setVisibility(SeekBar.GONE);
+	    	}
+	    	
+	    	if(showSongImage) {
+	    		Bitmap image = playingItem.getImage();
+	    		if(image==null) {
+	    			imageViewSongImage.setVisibility(View.GONE);
+	    		} else {
+	    			imageViewSongImage.setImageBitmap(image);
+	    			imageViewSongImage.setVisibility(View.VISIBLE);
+	    		}
+	    	} else {
+	    		imageViewSongImage.setVisibility(View.GONE);
 	    	}
     	} else {
     		// No song loaded
@@ -265,14 +281,15 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     		seekBar.setMax(10);
 	    	seekBar.setProgress(0);
 	    	seekBar.setClickable(false);
-	    	isWebRadio = false;
+	    	isLengthAvailable = true;
 	    	songDurationString = "";
 	    	seekBar.setVisibility(SeekBar.GONE);
+	    	imageViewSongImage.setVisibility(View.GONE);
     	}
     	updatePlayPauseButton();
     	updatePosition();
-    	updateListViewBrowser(true);
-    	updateListViewPlaylist();
+    	
+    	((MusicPlayerFragment)pagerAdapter.getItem(viewPager.getCurrentItem())).updateListView();
     }
     
     /* Updates the play/pause button status according to the playing song. */
@@ -286,10 +303,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		int progress = musicService.getCurrentPosition();
 		seekBar.setProgress(progress);
 		String time;
-		if(showRemainingTime && !isWebRadio) {
-			time = "-" + formatTime(musicService.getDuration()-progress);
+		if(showRemainingTime && isLengthAvailable) {
+			time = "-" + Utils.formatTime(musicService.getDuration()-progress);
 		} else {
-			time = formatTime(progress);
+			time = Utils.formatTime(progress);
 		}
 		time += songDurationString;
 		textViewTime.setText(time);
@@ -297,9 +314,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     
     /* Updates the shuffle/repeat/repeat_all icons according to the playing song */
     private void updateExtendedMenu() {
-    	int on = R.drawable.green_button;
-    	int off = R.drawable.blue_button;
-    	
+    	final int on = R.drawable.green_button;
+    	final int off = R.drawable.blue_button;
     	if(musicService.getShuffle()) imageButtonShuffle.setBackgroundResource(on);
     	else imageButtonShuffle.setBackgroundResource(off);
     	if(musicService.getRepeat()) imageButtonRepeat.setBackgroundResource(on);
@@ -316,21 +332,35 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     
     /* Called after the service has been bounded. */
     private void startRoutine() {
-    	/* If the service is already ready, startRoutineExec is executed directly,
-    	 * otherwise a loading dialog is showed while waiting for the service to be ready.
-    	 */
-    	if(!musicService.isReady()) new StartRoutineTask().execute();
-    	else startRoutineExec();
-    }
-    
-    private void startRoutineExec() {
-    	updatePlayingSong();
+    	updatePlayingItem();
     	updateExtendedMenu();
+    	
+    	// Opens the song from the intent, if necessary
+    	if(intentFile!=null) {
+    		BrowserSong song = new BrowserSong(intentFile);
+    		playItem(song);
+    	}
     	
     	// Starts the thread to update the seekbar and position information
     	if(startPollingThread) startPollingThread();
     }
     
+    @Override
+    protected void onNewIntent(Intent newIntent) {
+    	setIntent(newIntent);
+    	loadSongFromIntent();
+    }
+    private void loadSongFromIntent() {
+    	Intent intent = getIntent();
+    	if(intent!=null && intent.getAction()==Intent.ACTION_VIEW) {
+        	try {
+				intentFile = URLDecoder.decode(intent.getDataString(), "UTF-8");
+				intentFile = intentFile.replace("file://", "");
+			} catch (Exception e) {}
+        }
+    }
+    
+    /* Thread which updates song position polling the information from the service */
     private void startPollingThread() {
     	pollingThreadRunning = true;
         new Thread() {
@@ -346,7 +376,6 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         	}
         }.start();
     }
-    
     private void stopPollingThread() {
     	pollingThreadRunning = false;
     }
@@ -365,15 +394,17 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-    	if(viewPager.getCurrentItem()==PAGE_RADIO) {
-    		menu.findItem(R.id.menu_addRadio).setVisible(true);
-    	} else {
-    		menu.findItem(R.id.menu_addRadio).setVisible(false);
-    	}
     	if(viewPager.getCurrentItem()==PAGE_BROWSER) {
     		menu.findItem(R.id.menu_setAsBaseFolder).setVisible(true);
+    		menu.findItem(R.id.menu_gotoBaseFolder).setVisible(true);
     	} else {
     		menu.findItem(R.id.menu_setAsBaseFolder).setVisible(false);
+    		menu.findItem(R.id.menu_gotoBaseFolder).setVisible(false);
+    	}
+    	if(viewPager.getCurrentItem()==PAGE_PODCASTS) {
+    		menu.findItem(R.id.menu_removeDownloadedPodcasts).setVisible(true);
+    	} else {
+    		menu.findItem(R.id.menu_removeDownloadedPodcasts).setVisible(false);
     	}
     	return true;
     }
@@ -382,33 +413,35 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     @Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.menu_addRadio:
-			((RadioFragment)pagerAdapter.getItem(PAGE_RADIO)).newRadio();
-			return true;
-		case R.id.menu_newPlaylist:
-			editPlaylist(null);
-			return true;
 		case R.id.menu_gotoPlayingSongDirectory:
-			gotoPlayingSongDirectory();
+			gotoPlayingItemPosition();
+			return true;
+		case R.id.menu_gotoBaseFolder:
+			BrowserFragment browserFragment = (BrowserFragment)pagerAdapter.getItem(PAGE_BROWSER);
+			browserFragment.gotoBaseFolder();
 			return true;
 		case R.id.menu_search:
-			if(preferences.getBoolean("enableCache", true)) {
+			if(preferences.getBoolean(Constants.PREFERENCE_ENABLECACHE, Constants.DEFAULT_ENABLECACHE)) {
 				startActivityForResult(new Intent(this, SearchActivity.class), 1);
 			} else {
-				Dialogs.showMessageDialog(this, R.string.search, R.string.searchNotPossible);
+				Utils.showMessageDialog(this, R.string.search, R.string.searchNotPossible);
 			}
 			return true;
 		case R.id.menu_songInfo:
-			showSongInfo(musicService.getPlayingSong());
+			showItemInfo(musicService.getCurrentPlayingItem());
 			return true;
 		case R.id.menu_setAsBaseFolder:
-			setBaseFolder(musicService.getBrowsingDir());
+			setBaseFolder(((MusicPlayerApplication)getApplication()).getCurrentDirectory().getDirectory());
+			return true;
+		case R.id.menu_removeDownloadedPodcasts:
+			PodcastsFragment podcastsFragment = (PodcastsFragment)pagerAdapter.getItem(PAGE_PODCASTS);
+			podcastsFragment.removeDownloadedPodcasts();
 			return true;
 		case R.id.menu_preferences:
 			Intent intentPreferences = new Intent(this, PreferencesActivity.class);
 			startActivity(intentPreferences);
 			return true;
-		case R.id.menu_quit: // Close the application
+		case R.id.menu_quit:
 			quitApplication();
 			return true;
 		default:
@@ -418,17 +451,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     
     @Override
 	public boolean onContextItemSelected(MenuItem item) {
-    	if(viewPager.getCurrentItem()==PAGE_BROWSER) {
-    		BrowserFragment browserFragment = (BrowserFragment)pagerAdapter.getItem(PAGE_BROWSER);
-    		return browserFragment.onContextItemSelectedBrowser(item);
-    	} else if(viewPager.getCurrentItem()==PAGE_PLAYLIST) {
-    		PlaylistFragment playlistFragment = (PlaylistFragment)pagerAdapter.getItem(PAGE_PLAYLIST);
-    		return playlistFragment.onContextItemSelectedPlaylist(item);
-    	} else if(viewPager.getCurrentItem()==PAGE_RADIO) {
-    		RadioFragment radioFragment = (RadioFragment)pagerAdapter.getItem(PAGE_RADIO);
-    		return radioFragment.onContextItemSelectedRadio(item);
-    	}
-    	return false;
+    	return ((MusicPlayerFragment)pagerAdapter.getItem(viewPager.getCurrentItem())).onContextItemSelected(item);
     }
 
     /* Button click handler. */
@@ -438,9 +461,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			musicService.playPause();
 			updatePlayPauseButton();
 		} else if(view.equals(imageButtonNext)) {
-			musicService.nextSong();
+			musicService.nextItem();
 		} else if(view.equals(imageButtonPrevious))  {
-			musicService.previousSong();
+			musicService.previousItem();
 		} else if(view.equals(textViewTime)) {
 			showRemainingTime = !showRemainingTime;
 		} else if(view.equals(imageButtonShuffle)) {
@@ -456,13 +479,13 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			if(musicService.getBassBoostAvailable()) {
 				bassBoostSettings();
 			} else {
-				Dialogs.showMessageDialog(this, R.string.error, R.string.errorBassBoost);
+				Utils.showMessageDialog(this, R.string.error, R.string.errorBassBoost);
 			}
 		} else if(view.equals(buttonEqualizer)) {
 			if(musicService.getEqualizerAvailable()) {
 				equalizerSettings();
 			} else {
-				Dialogs.showMessageDialog(this, R.string.error, R.string.errorEqualizer);
+				Utils.showMessageDialog(this, R.string.error, R.string.errorEqualizer);
 			}
 		} else if(view.equals(buttonShake)) {
 			musicService.toggleShake();
@@ -483,220 +506,57 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		// Called when SearchActivity returns
 		super.onActivityResult(requestCode, resultCode, intent);
 		if (resultCode == 1) { // If result code is 0, the user canceled the operation
-			Song song = (Song) intent.getSerializableExtra("song");
+			BrowserSong song = (BrowserSong)intent.getSerializableExtra("song");
+			File songDirectory = new File(song.getPlayableUri()).getParentFile();
+			BrowserDirectory browserDirectory = new BrowserDirectory(songDirectory);
+			song.setBrowser(browserDirectory);
 			playSongFromSearch(song);
-			gotoPlayingSongDirectory();
+			gotoPlayingItemPosition();
 		}
 	}
 	
-	private void quitApplication() {
+	/* ALWAYS CALL THIS FUNCTION TO COMPLETELY CLOSE THE APPLICATION */
+	public void quitApplication() {
 		stopService(serviceIntent); // Stop the service!
 		finish();
 	}
 	
-	public void playSong(Song song, boolean fromPlaylist) {
-		boolean ok;
-		if(fromPlaylist) {
-			ok = musicService.playSongFromPlaylist((PlaylistSong)song, true);
-		} else {
-			ok = musicService.playSongFromBrowser(song);
+	public void playItem(PlayableItem item) {
+		boolean ok = musicService.playItem(item);
+		if(!ok) {
+			Utils.showMessageDialog(this, R.string.errorSong, R.string.errorSongMessage);
 		}
+	}
+	
+	public void playSongFromSearch(BrowserSong song) {
+		boolean ok = musicService.playItem(song);
 		if (!ok) {
-			Dialogs.showMessageDialog(this, R.string.errorSong, R.string.errorSongMessage);
-		}
-		updateListViewBrowser(true);
-		updateListViewPlaylist();
-	}
-	
-	public void playSongFromSearch(Song song) {
-		boolean ok = musicService.playSongFromSearch(song);
-		if (!ok) {
-			Dialogs.showMessageDialog(this, R.string.errorSong, R.string.errorSongMessage);
+			Utils.showMessageDialog(this, R.string.errorSong, R.string.errorSongMessage);
 		}
 	}
 	
-	public void playRadio(Song song) {
-		new PlayRadioTask(song).execute();
+	public void playRadio(Radio radio) {
+		new PlayRadioTask(radio).execute();
 	}
 	
-	public void editPlaylist(final Playlist playlist) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		int title = playlist==null ? R.string.newPlaylist : R.string.editPlaylist;
-		builder.setTitle(getResources().getString(title));
-		final View view = getLayoutInflater().inflate(R.layout.layout_editplaylist, null);
-		builder.setView(view);
-		
-		final EditText editTextName = (EditText)view.findViewById(R.id.editTextPlaylistName);
-		if(playlist!=null) editTextName.setText(playlist.getName());
-		
-		builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int id) {
-				String name = editTextName.getText().toString();
-				if(name==null || name.equals("")) {
-					Dialogs.showMessageDialog(MainActivity.this, R.string.error, R.string.errorPlaylistName);
-					return;
-				}
-				if(playlist==null) {
-					addPlaylist(name);
-				} else {
-					playlist.editName(name);
-					updateListViewPlaylist();
-				}
-			}
-		});
-		builder.setNegativeButton(R.string.cancel, null);
-		AlertDialog dialog = builder.create();
-		dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-		dialog.show();
+	public PlayableItem getCurrentPlayingItem() {
+		if(musicService==null) return null;
+		return musicService.getCurrentPlayingItem();
 	}
 	
-	public void showPlaylistsList() {
-		currentPlaylist = null;
-		updateListViewPlaylist();
-	}
-	
-	public void showPlaylist(Playlist playlist) {
-		if(playlist.equals(currentPlaylist)) return;
-		currentPlaylist = playlist;
-		updateListViewPlaylist();
-	}
-	
-	public Playlist addPlaylist(String name) {
-		Playlist playlist = musicService.addPlaylist(name);
-		updateListViewPlaylist();
-		return playlist;
-	}
-	
-	public void deletePlaylist(final Playlist playlist) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(R.string.delete);
-		builder.setMessage(R.string.deletePlaylistConfirm);
-		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-		      public void onClick(DialogInterface dialog, int which) {
-		    	  musicService.deletePlaylist(playlist);
-		    	  updateListViewPlaylist();
-		      }
-		});
-		builder.setNegativeButton(R.string.no, null);
-		builder.show();
-	}
-	
-	public void addSongToPlaylist(Playlist playlist, Song song) {
-		playlist.addSong(song);
-		updateListViewPlaylist();
-	}
-	
-	public void addFolderToPlaylist(Playlist playlist, File folder) {
-		new AddFolderToPlaylistTask(playlist, folder).execute();
-	}
-	
-	public void deleteSongFromPlaylist(PlaylistSong song) {
-		song.getPlaylist().deleteSong(song);
-		updateListViewPlaylist();
-	}
-	
-	public ArrayList<Playlist> getPlaylists() {
-		return musicService.getPlaylists();
-	}
-	
-	public void sortPlaylist(int from, int to) {
-		if(currentPlaylist==null) { // Sorting playlists
-			musicService.sortPlaylists(from, to);
-		} else { // Sorting songs in playlist
-			if(to==0) return; // The user is trying to put the song above the button to go back to the playlists' list
-			currentPlaylist.sort(from-1, to-1); // -1 is due to first element being link to previous folder
-		}
-		updateListViewPlaylist();
-	}
-	
-	public void updateListViewPlaylist() {
-		Song playingSong = null;
-        if(musicService.getPlayingPlaylist()) playingSong = musicService.getPlayingSong();
-		ArrayList<Object> values = new ArrayList<Object>();
-		if(currentPlaylist==null) { // Show all playlists
-			ArrayList<Playlist> playlists = getPlaylists();
-			values.addAll(playlists);
-		} else {
-			values.add(new String(currentPlaylist.getName()));
-			values.addAll(currentPlaylist.getSongs());
-		}
-		PlaylistArrayAdapter playlistArrayAdapter = new PlaylistArrayAdapter(this, values, playingSong);
-		PlaylistFragment playlistFragment = (PlaylistFragment)pagerAdapter.getItem(PAGE_PLAYLIST);
-		playlistFragment.setArrayAdapter(playlistArrayAdapter);
-		playlistFragment.updateListView();
-	}
-	
-	/* Moves to the parent directory. Shows a "toast" if an error occurs. */
-	public void gotoParentDir() {
-		File currentDir = musicService.getBrowsingDir();
-		final File parentDir = currentDir.getParentFile();
-		String baseDirectory = preferences.getString(MusicService.PREFERENCE_BASEFOLDER, null);
-		
-		if(baseDirectory!=null && new File(baseDirectory).equals(currentDir)) {
-			AlertDialog dialog = new AlertDialog.Builder(this).create();
-			dialog.setTitle(R.string.baseFolderReachedTitle);
-			dialog.setMessage(getResources().getString(R.string.baseFolderReachedMessage));
-			dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					new ChangeDirTask(parentDir, null).execute();
-				}
-			});
-			dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
-			dialog.setButton(AlertDialog.BUTTON_NEUTRAL, getResources().getString(R.string.quitApp), new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					quitApplication();
-				}
-			});
-			dialog.show();
-		} else {
-			new ChangeDirTask(parentDir, null).execute();
-		}
-	}
-	
-	public void gotoDirectory(File newDirectory, Song scrollToSong) {
-		new ChangeDirTask(newDirectory, scrollToSong).execute();
-	}
-	
-	public void gotoPlayingSongDirectory() {
-		Song playingSong = musicService.getPlayingSong();
-		if(playingSong==null) return;
-		
-		if(playingSong.isWebRadio()) {
-			viewPager.setCurrentItem(PAGE_RADIO);
-			return;
-		}
-		
-		if(playingSong instanceof PlaylistSong) { // A playlist is being played
-			showPlaylist(((PlaylistSong)playingSong).getPlaylist());
-			viewPager.setCurrentItem(PAGE_PLAYLIST);
-			scrollToSong(playingSong);
-		} else { // A file from browser is being played
-			File songDirectory = new File(playingSong.getUri()).getParentFile();
-			if(!songDirectory.equals(musicService.getBrowsingDir())) {
-				gotoDirectory(songDirectory, playingSong);
-			} else {
-				scrollToSong(playingSong);
-			}
+	public void gotoPlayingItemPosition() {
+		final PlayableItem playingItem = musicService.getCurrentPlayingItem();
+		if(playingItem==null) return;
+		if(playingItem instanceof BrowserSong) {
 			viewPager.setCurrentItem(PAGE_BROWSER);
+		} else if(playingItem instanceof PlaylistSong) {
+			viewPager.setCurrentItem(PAGE_PLAYLISTS);
+		} else if(playingItem instanceof Radio) {
+			viewPager.setCurrentItem(PAGE_RADIOS);
+		} else if(playingItem instanceof PodcastItem) {
+			viewPager.setCurrentItem(PAGE_PODCASTS);
 		}
-	}
-	
-	private void scrollToSong(final Song song) {
-		new Thread() {
-			public void run() {
-				runOnUiThread(new Runnable() {
-					public void run() {
-						if(song instanceof PlaylistSong) {
-							PlaylistFragment playlistFragment = (PlaylistFragment)pagerAdapter.getItem(PAGE_PLAYLIST);
-							playlistFragment.scrollToSong((PlaylistSong)song);
-						} else {
-							BrowserFragment browserFragment = (BrowserFragment)pagerAdapter.getItem(PAGE_BROWSER);
-							browserFragment.scrollToSong(song);
-						}
-					}
-				});
-			}
-		}.start();
+		((MusicPlayerFragment)pagerAdapter.getItem(viewPager.getCurrentItem())).gotoPlayingItemPosition(playingItem);
 	}
 	
 	public void setBaseFolder(final File folder) {
@@ -714,7 +574,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	
 	private void saveBaseFolder(final File folder) {
 		SharedPreferences.Editor editor = preferences.edit();
-		editor.putString(MusicService.PREFERENCE_BASEFOLDER, folder.getAbsolutePath());
+		editor.putString(Constants.PREFERENCE_BASEFOLDER, folder.getAbsolutePath());
 		editor.commit();
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -732,13 +592,23 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	}
 	
 	/* Back button click handler. Overwrites default behaviour. */
+	boolean backPressedOnce = false; // Necessary to implement double-tap-to-quit-app
 	@Override
 	public void onBackPressed() {
-		if(viewPager.getCurrentItem()==PAGE_BROWSER) {
-			gotoParentDir();
-			updateListViewBrowser(false);
-		} else if(viewPager.getCurrentItem()==PAGE_PLAYLIST) {
-			if(currentPlaylist!=null) showPlaylistsList();
+		if(backPressedOnce) {
+			quitApplication();
+			return;
+		}
+		boolean executed = ((MusicPlayerFragment)pagerAdapter.getItem(viewPager.getCurrentItem())).onBackPressed();
+		if(!executed && preferences.getBoolean(Constants.PREFERENCE_ENABLEBACKDOUBLEPRESSTOQUITAPP, Constants.DEFAULT_ENABLEBACKDOUBLEPRESSTOQUITAPP)) {
+			backPressedOnce = true;
+			Toast.makeText(this, R.string.pressAgainToQuitApp, Toast.LENGTH_SHORT).show();
+			new Handler().postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					backPressedOnce = false;   
+				}
+			}, 2000);
 		}
 	}
 
@@ -750,9 +620,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			updatePosition();
 		}
 	}
-	
-	@Override public void onStartTrackingTouch(SeekBar arg0) {}
-	@Override public void onStopTrackingTouch(SeekBar arg0) {}
+	@Override public void onStartTrackingTouch(SeekBar seekBar) {}
+	@Override public void onStopTrackingTouch(SeekBar seekBar) {}
 	
 	private ServiceConnection musicConnection = new ServiceConnection() {
 		@Override
@@ -766,64 +635,31 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		}
 	};
 	
-	private class ChangeDirTask extends AsyncTask<Void, Void, Boolean> {
-		private File newDirectory;
-		private Song gotoSong;
-		public ChangeDirTask(File newDirectory, Song gotoSong) {
-			this.newDirectory = newDirectory;
-			this.gotoSong = gotoSong;
-		}
-		@Override
-		protected void onPreExecute() {
-			setProgressBarIndeterminateVisibility(true);
-	    }
-		@Override
-		protected Boolean doInBackground(Void... params) {
-			if (newDirectory!=null && newDirectory.canRead()) {
-				musicService.gotoDirectory(newDirectory);
-				return true;
-			} else {
-				return false;
-			}
-		}
-		@Override
-		protected void onPostExecute(final Boolean success) {
-			if(success) {
-				updateListViewBrowser(false);
-				updateListViewPlaylist();
-				if(gotoSong!=null) {
-					scrollToSong(gotoSong);
-				}
-			} else {
-				Toast.makeText(MainActivity.this, R.string.dirError, Toast.LENGTH_SHORT).show();
-			}
-			setProgressBarIndeterminateVisibility(false);
-		}
-	}
+	
 	
 	private class PlayRadioTask extends AsyncTask<Void, Void, Boolean> {
 		private ProgressDialog progressDialog;
-		private Song song;
-		public PlayRadioTask(Song song) {
-			this.song = song;
+		private Radio radio;
+		public PlayRadioTask(Radio radio) {
+			this.radio = radio;
 			progressDialog = new ProgressDialog(MainActivity.this);
 		}
 		@Override
 		protected void onPreExecute() {
 	        progressDialog.setIndeterminate(true);
 	        progressDialog.setCancelable(false);
-	        progressDialog.setMessage(MainActivity.this.getString(R.string.loadingRadio, song.getTitle()));
+	        progressDialog.setMessage(MainActivity.this.getString(R.string.loadingRadio, radio.getTitle()));
 			progressDialog.show();
 			startPollingThread = false;
 			stopPollingThread(); // To prevent polling thread activation
 	    }
 		@Override
 		protected Boolean doInBackground(Void... params) {
-			return musicService.playWebRadio(song);
+			return musicService.playItem(radio);
 		}
 		@Override
 		protected void onPostExecute(final Boolean success) {
-			updatePlayingSong();
+			updatePlayingItem();
 			if(progressDialog.isShowing()) {
 				progressDialog.dismiss();
 	        }
@@ -831,78 +667,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			if(!pollingThreadRunning) startPollingThread();
 			
 			if(!success) {
-				Dialogs.showMessageDialog(MainActivity.this, R.string.errorWebRadio, R.string.errorWebRadioMessage);
+				Utils.showMessageDialog(MainActivity.this, R.string.errorWebRadio, R.string.errorWebRadioMessage);
 			}
-		}
-	}
-	
-	private String formatTime(int milliseconds) {
-		String ret = "";
-		int seconds = (int) (milliseconds / 1000) % 60 ;
-		int minutes = (int) ((milliseconds / (1000*60)) % 60);
-		int hours   = (int) ((milliseconds / (1000*60*60)) % 24);
-		if(hours>0) ret += hours+":";
-		ret += minutes<10 ? "0"+minutes+":" : minutes+":";
-		ret += seconds<10 ? "0"+seconds : seconds+"";
-		return ret;
-	}
-	
-	private class StartRoutineTask extends AsyncTask<Void, Void, Void> {
-		private ProgressDialog progressDialog;
-		@Override
-		protected void onPreExecute() {
-			progressDialog = new ProgressDialog(MainActivity.this);
-	        progressDialog.setIndeterminate(true);
-	        progressDialog.setCancelable(false);
-	        progressDialog.setMessage(MainActivity.this.getString(R.string.loading));
-			progressDialog.show();
-	    }
-		@Override
-		protected Void doInBackground(Void... params) {
-			musicService.lock.lock();
-			while(!musicService.isReady()) {
-				try{musicService.condition.await();}catch(Exception e) {}
-			}
-			musicService.lock.unlock();
-			return null;
-		}
-		@Override
-		protected void onPostExecute(final Void success) {
-			startRoutineExec();
-			if(progressDialog.isShowing()) progressDialog.dismiss();
-		}
-	}
-	
-	
-	
-	private class AddFolderToPlaylistTask extends AsyncTask<Void, Void, Void> {
-		private ProgressDialog progressDialog;
-		private Playlist playlist;
-		private File folder;
-		public AddFolderToPlaylistTask(Playlist playlist, File folder) {
-			this.playlist = playlist;
-			this.folder = folder;
-		}
-		@Override
-		protected void onPreExecute() {
-			progressDialog = new ProgressDialog(MainActivity.this);
-	        progressDialog.setIndeterminate(true);
-	        progressDialog.setCancelable(false);
-	        progressDialog.setMessage(MainActivity.this.getString(R.string.addingSongsToPlaylist));
-			progressDialog.show();
-	    }
-		@Override
-		protected Void doInBackground(Void... params) {
-			List<Song> songs = musicService.getSongsInDirectory(folder);
-			for(Song song : songs) {
-				playlist.addSong(song);
-			}
-			return null;
-		}
-		@Override
-		protected void onPostExecute(final Void success) {
-			updateListViewPlaylist();
-			if(progressDialog.isShowing()) progressDialog.dismiss();
 		}
 	}
 	
@@ -997,31 +763,42 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		builder.show();
 	}
 	
-	private void showSongInfo(Song song) {
-		if(song==null) return;
-		AlertDialog dialog = new AlertDialog.Builder(this).create();
-		dialog.setTitle(R.string.songInfo);
+	public boolean getShowSongImage() {
+		return showSongImage;
+	}
+	public LruCache<String,Bitmap> getImagesCache() {
+		return imagesCache;
+	}
+	
+	private void showItemInfo(PlayableItem item) {
+		if(item==null || item.getInformation()==null) return;
+		ArrayList<Information> information = item.getInformation();
+		
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.songInfo);
 		View view = getLayoutInflater().inflate(R.layout.layout_songinfo, null, false);
-		TextView textViewSongInfoArtist = (TextView)view.findViewById(R.id.textViewSongInfoArtist);
-		TextView textViewSongInfoTitle = (TextView)view.findViewById(R.id.textViewSongInfoTitle);
-		TextView textViewSongInfoFileName = (TextView)view.findViewById(R.id.textViewSongInfoFileName);
-		TextView textViewSongInfoTrackNumber = (TextView)view.findViewById(R.id.textViewSongInfoTrackNumber);
-		TextView textViewSongInfoFileSize = (TextView)view.findViewById(R.id.textViewSongInfoFileSize);
-		textViewSongInfoArtist.setText(song.getArtist());
-		textViewSongInfoTitle.setText(song.getTitle());
-		if(song.getTrackNumber()!=null) {
-			textViewSongInfoTrackNumber.setText(song.getTrackNumber().toString());
-		} else {
-			textViewSongInfoTrackNumber.setText("-");
+		LinearLayout linearLayout = (LinearLayout)view.findViewById(R.id.linearLayoutInformation);
+		
+		Bitmap image = item.getImage();
+		if(image!=null) {
+			ImageView imageView = new ImageView(this);
+			imageView.setImageBitmap(image);
+			linearLayout.addView(imageView);
 		}
-		textViewSongInfoFileName.setText(song.getUri());
-		if(song.isWebRadio()) {
-			
-		} else {
-			textViewSongInfoFileSize.setText(song.getFileSize());
+		
+		for(Information info : information) {
+			TextView info1 = new TextView(this);
+			info1.setTextAppearance(this, android.R.style.TextAppearance_Medium);
+			info1.setText(getResources().getString(info.key));
+			TextView info2 = new TextView(this);
+			info2.setText(info.value);
+			info2.setPadding(0, 0, 0, 10);
+			linearLayout.addView(info1);
+			linearLayout.addView(info2);
 		}
-		dialog.setView(view);
-		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
-		dialog.show();
+		
+		builder.setView(view);
+		builder.setPositiveButton(R.string.ok, null);
+		builder.show();
 	}
 }

@@ -16,10 +16,7 @@
  */
 -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_addRadio"
-	    android:title="@string/addRadio" />
-    
+<menu xmlns:android="http://schemas.android.com/apk/res/android">    
     <item android:id="@+id/menu_search"
 	    android:title="@string/search"
 	    android:icon="@drawable/search"
@@ -29,15 +26,19 @@
 	    android:title="@string/gotoPlayingSongDirectory"
 	    android:icon="@drawable/pin"
 	    android:showAsAction="ifRoom|withText" />
-	
-	<item android:id="@+id/menu_newPlaylist"
-	    android:title="@string/newPlaylist" />
+    
+    <item android:id="@+id/menu_gotoBaseFolder"
+        android:title="@string/gotoBaseFolder"
+        android:showAsAction="never" />
 	
 	<item android:id="@+id/menu_songInfo"
 	    android:title="@string/songInfo" />
 	
 	<item android:id="@+id/menu_setAsBaseFolder"
 	    android:title="@string/setAsBaseFolder" />
+	
+	<item android:id="@+id/menu_removeDownloadedPodcasts"
+	    android:title="@string/removeDownloadedPodcasts" />
 	
 	<item android:id="@+id/menu_preferences"
 		android:title="@string/preferences"

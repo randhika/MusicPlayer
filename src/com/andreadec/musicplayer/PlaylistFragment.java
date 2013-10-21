@@ -16,8 +16,11 @@
 
 package com.andreadec.musicplayer;
 
+import java.util.ArrayList;
+
+import android.app.*;
+import android.content.*;
 import android.os.*;
-import android.support.v4.app.*;
 import android.view.*;
 import android.view.ContextMenu.*;
 import android.widget.*;
@@ -27,7 +30,8 @@ import com.andreadec.musicplayer.adapters.*;
 import com.mobeta.android.dslv.*;
 import com.mobeta.android.dslv.DragSortListView.*;
 
-public class PlaylistFragment extends Fragment implements OnItemClickListener, DropListener {
+public class PlaylistFragment extends MusicPlayerFragment implements OnItemClickListener, DropListener {
+	private Playlist currentPlaylist = null;
 	private DragSortListView listViewPlaylist;
 	private PlaylistArrayAdapter playlistArrayAdapter;
 	
@@ -38,7 +42,6 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener, D
 		listViewPlaylist = (DragSortListView)view.findViewById(R.id.listViewPlaylist);
 		listViewPlaylist.setOnItemClickListener(this);
 		listViewPlaylist.setDropListener(this);
-		listViewPlaylist.setEmptyView(view.findViewById(R.id.listViewPlaylistEmpty));
 		registerForContextMenu(listViewPlaylist);
 		updateListView();
 		return view;
@@ -49,7 +52,7 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener, D
 		int position = ((AdapterContextMenuInfo)menuInfo).position;
 		
 		Object item = playlistArrayAdapter.getItem(position);
-		if(item instanceof String) return;
+		if(item instanceof Action) return;
 		
 		super.onCreateContextMenu(menu, view, menuInfo);
 		MenuInflater inflater = getActivity().getMenuInflater();
@@ -65,35 +68,103 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener, D
 		}
 	}
 	
-	public boolean onContextItemSelectedPlaylist (MenuItem item) {
-		MainActivity activity = (MainActivity)getActivity();
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
 		int position = ((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position;
+		
 		Object listItem = playlistArrayAdapter.getItem(position);
 		if(listItem instanceof Playlist) {
 			switch (item.getItemId()) {
 			case R.id.menu_edit:
-				activity.editPlaylist((Playlist)listItem);
+				editPlaylist((Playlist)listItem);
 				return true;
 			case R.id.menu_delete:
-				activity.deletePlaylist((Playlist)listItem);
+				deletePlaylist((Playlist)listItem);
 				return true;
 			}
 		} else if(listItem instanceof PlaylistSong) {
 			switch (item.getItemId()) {
 			case R.id.menu_delete:
-				activity.deleteSongFromPlaylist((PlaylistSong)listItem);
+				deleteSongFromPlaylist((PlaylistSong)listItem);
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	public void setArrayAdapter(PlaylistArrayAdapter playlistArrayAdapter) {
-		this.playlistArrayAdapter = playlistArrayAdapter;
+	private void addPlaylist(String name) {
+		Playlists.addPlaylist(name);
+		updateListView();
 	}
 	
+	public void editPlaylist(final Playlist playlist) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		int title = playlist==null ? R.string.newPlaylist : R.string.editPlaylist;
+		builder.setTitle(getResources().getString(title));
+		final View view = getActivity().getLayoutInflater().inflate(R.layout.layout_editplaylist, null);
+		builder.setView(view);
+		
+		final EditText editTextName = (EditText)view.findViewById(R.id.editTextPlaylistName);
+		if(playlist!=null) editTextName.setText(playlist.getName());
+		
+		builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				String name = editTextName.getText().toString();
+				if(name==null || name.equals("")) {
+					Utils.showMessageDialog(getActivity(), R.string.error, R.string.errorPlaylistName);
+					return;
+				}
+				if(playlist==null) {
+					addPlaylist(name);
+				} else {
+					playlist.editName(name);
+					updateListView();
+				}
+			}
+		});
+		builder.setNegativeButton(R.string.cancel, null);
+		AlertDialog dialog = builder.create();
+		dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+		dialog.show();
+	}
+	
+	private void deletePlaylist(final Playlist playlist) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.delete);
+		builder.setMessage(R.string.deletePlaylistConfirm);
+		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+		      public void onClick(DialogInterface dialog, int which) {
+		    	  Playlists.deletePlaylist(playlist);
+		    	  updateListView();
+		      }
+		});
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
+	}
+	
+	@Override
 	public void updateListView() {
-		if(playlistArrayAdapter==null || listViewPlaylist==null) return;
+		updateListView(true);
+	}
+	
+	private void updateListView(boolean restoreOldPosition) {
+		MainActivity activity = (MainActivity)getActivity();
+		PlaylistSong playingSong = null;
+        if(activity.getCurrentPlayingItem() instanceof PlaylistSong) {
+        	playingSong = (PlaylistSong)(activity.getCurrentPlayingItem());
+        }
+		ArrayList<Object> values = new ArrayList<Object>();
+		if(currentPlaylist==null) { // Show all playlists
+			values.add(new Action(Action.ACTION_NEW, getResources().getString(R.string.newPlaylist)));
+			ArrayList<Playlist> playlists = Playlists.getPlaylists();
+			values.addAll(playlists);
+		} else {
+			values.add(new Action(Action.ACTION_GO_BACK, currentPlaylist.getName()));
+			values.addAll(currentPlaylist.getSongs());
+		}
+		
+		
+		playlistArrayAdapter = new PlaylistArrayAdapter(activity, values, playingSong);
 		Parcelable state = listViewPlaylist.onSaveInstanceState();
         listViewPlaylist.setAdapter(playlistArrayAdapter);
         listViewPlaylist.onRestoreInstanceState(state);
@@ -102,31 +173,82 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener, D
 	public void scrollToSong(PlaylistSong song) {
 		for(int i=0; i<playlistArrayAdapter.getCount(); i++) {
 			Object item = playlistArrayAdapter.getItem(i);
-			if(item instanceof Song) {
-				if(((Song)item).equals(song)) {
-					listViewPlaylist.smoothScrollToPosition(i);
+			if(item instanceof PlaylistSong) {
+				if(((PlaylistSong)item).equals(song)) {
+					final int position = i;
+					listViewPlaylist.post(new Runnable() {
+						@Override
+						public void run() {
+							listViewPlaylist.smoothScrollToPosition(position);
+						}
+					});
 					break;
 				}
 			}
 		}
 	}
 	
+	private void deleteSongFromPlaylist(PlaylistSong song) {
+		song.getPlaylist().deleteSong(song);
+		updateListView();
+	}
+	
+	private void sortPlaylist(int from, int to) {
+		if(currentPlaylist==null) { // Sorting playlists
+			if(to==0) return;
+			Playlists.sortPlaylists(from-1, to-1);
+		} else { // Sorting songs in playlist
+			if(to==0) return; // The user is trying to put the song above the button to go back to the playlists' list
+			currentPlaylist.sort(from-1, to-1); // -1 is due to first element being link to previous folder
+		}
+		updateListView();
+	}
+	
+	public void showPlaylists() {
+		currentPlaylist = null;
+		updateListView();
+	}
+	
+	public void showPlaylist(Playlist playlist) {
+		currentPlaylist = (playlist);
+		updateListView();
+	}
+	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		MainActivity activity = (MainActivity)getActivity();
 		Object item = playlistArrayAdapter.getItem(position);
-		if(item instanceof String) {
-			activity.showPlaylistsList();
+		if(item instanceof Action) {
+			Action action = (Action)item;
+			if(action.action==Action.ACTION_GO_BACK) showPlaylists();
+			else if(action.action==Action.ACTION_NEW) editPlaylist(null);
 		} else if(item instanceof PlaylistSong) {
-			activity.playSong((PlaylistSong)item, true);
+			MainActivity activity = (MainActivity)getActivity();
+			activity.playItem((PlaylistSong)item);
+			updateListView();
 		} else if(item instanceof Playlist) {
-			activity.showPlaylist((Playlist)item);
+			showPlaylist((Playlist)item);
 		}
 	}
 
 	@Override
 	public void drop(int from, int to) {
-		MainActivity activity = (MainActivity)getActivity();
-		activity.sortPlaylist(from, to);
+		sortPlaylist(from, to);
+	}
+
+	@Override
+	public boolean onBackPressed() {
+		if(currentPlaylist!=null) {
+			showPlaylists();
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public void gotoPlayingItemPosition(PlayableItem playingItem) {
+		PlaylistSong song = (PlaylistSong)playingItem;
+		showPlaylist(song.getPlaylist());
+		scrollToSong(song);
 	}
 }

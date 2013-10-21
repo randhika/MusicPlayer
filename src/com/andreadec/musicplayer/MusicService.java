@@ -18,13 +18,10 @@ package com.andreadec.musicplayer;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.locks.*;
 
 import android.app.*;
 import android.content.*;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.BitmapFactory;
+import android.graphics.*;
 import android.media.*;
 import android.media.MediaPlayer.*;
 import android.media.audiofx.*;
@@ -33,26 +30,8 @@ import android.preference.*;
 import android.support.v4.app.*;
 import android.telephony.*;
 
-import com.andreadec.musicplayer.comparators.*;
-import com.andreadec.musicplayer.database.*;
-import com.andreadec.musicplayer.filters.*;
-
 public class MusicService extends Service implements OnCompletionListener {
-	private final IBinder musicBinder = new MusicBinder();
-	private final static int NOTIFICATION_ID = 1;
-	public final static String PREFERENCE_BASEFOLDER = "baseFolder";
-	private final static String PREFERENCE_LASTDIRECTORY = "lastDirectory";
-	private final static String PREFERENCE_LASTPLAYINGSONG = "lastPlayingSong";
-	private final static String PREFERENCE_LASTSONGPOSITION = "lastSongPosition";
-	private final static String PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID = "lastPlyaingSongFromPlaylistId";
-	private final static String PREFERENCE_SHUFFLE = "shuffle";
-	private final static String PREFERENCE_REPEAT = "repeat";
-	private final static String PREFERENCE_REPEATALL = "repeatAll";
-	private final static String PREFERENCE_BASSBOOST = "bassBoost";
-	private final static String PREFERENCE_BASSBOOSTSTRENGTH = "bassBoostStrength";
-	private final static String PREFERENCE_EQUALIZER = "equalizer";
-	private final static String PREFERENCE_EQUALIZERPRESET = "equalizerPreset";
-	private final static String PREFERENCE_SHAKEENABLED = "shakeEnabled";
+	private final IBinder musicBinder = new MusicBinder();	
 	private NotificationManager notificationManager;
 	private Notification notification;
 	private SharedPreferences preferences;
@@ -62,15 +41,7 @@ public class MusicService extends Service implements OnCompletionListener {
 	private PendingIntent playpausePendingIntent;
 	private PendingIntent nextPendingIntent;
 	
-	private File browsingDir;
-	private ArrayList<File> browsingSubdirs;
-	private ArrayList<Song> browsingSongs;
-	
-	private Song playingSong;
-	private ArrayList<? extends Song> playingSongs;
-	
-	private ArrayList<Playlist> playlists;
-	private boolean playingPlaylist = false; // Are we playing a playlist?
+	private PlayableItem currentPlayingItem;
 	
 	private MediaPlayer mediaPlayer;
 	private BassBoost bassBoost;
@@ -87,10 +58,6 @@ public class MusicService extends Service implements OnCompletionListener {
 	private BroadcastReceiver broadcastReceiver;
 	
 	private ShakeListener shakeListener;
-	
-	private boolean ready = false;
-	public Lock lock = new ReentrantLock();
-	public Condition condition = lock.newCondition();
 	
 	/**
 	 * Called when the service is created.
@@ -116,21 +83,21 @@ public class MusicService extends Service implements OnCompletionListener {
 		mediaPlayer.setOnCompletionListener(this);
 		mediaPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK); // Enable the wake lock to keep CPU running when the screen is switched off
 		
-		shuffle = preferences.getBoolean(PREFERENCE_SHUFFLE, false);
-		repeat = preferences.getBoolean(PREFERENCE_REPEAT, false);
-		repeatAll = preferences.getBoolean(PREFERENCE_REPEATALL, false);
+		shuffle = preferences.getBoolean(Constants.PREFERENCE_SHUFFLE, Constants.DEFAULT_SHUFFLE);
+		repeat = preferences.getBoolean(Constants.PREFERENCE_REPEAT, Constants.DEFAULT_REPEAT);
+		repeatAll = preferences.getBoolean(Constants.PREFERENCE_REPEATALL, Constants.DEFAULT_REPEATALL);
 		try { // This may fail if the device doesn't support bass boost
 			bassBoost = new BassBoost(1, mediaPlayer.getAudioSessionId());
-			bassBoost.setEnabled(preferences.getBoolean(PREFERENCE_BASSBOOST, false));
-			setBassBoostStrength(preferences.getInt(PREFERENCE_BASSBOOSTSTRENGTH, 0));
+			bassBoost.setEnabled(preferences.getBoolean(Constants.PREFERENCE_BASSBOOST, Constants.DEFAULT_BASSBOOST));
+			setBassBoostStrength(preferences.getInt(Constants.PREFERENCE_BASSBOOSTSTRENGTH, Constants.DEFAULT_BASSBOOSTSTRENGTH));
 			bassBoostAvailable = true;
 		} catch(Exception e) {
 			bassBoostAvailable = false;
 		}
 		try { // This may fail if the device doesn't support equalizer
 			equalizer = new Equalizer(1, mediaPlayer.getAudioSessionId());
-			equalizer.setEnabled(preferences.getBoolean(PREFERENCE_EQUALIZER, false));
-			setEqualizerPreset(preferences.getInt(PREFERENCE_EQUALIZERPRESET, 0));
+			equalizer.setEnabled(preferences.getBoolean(Constants.PREFERENCE_EQUALIZER, Constants.DEFAULT_EQUALIZER));
+			setEqualizerPreset(preferences.getInt(Constants.PREFERENCE_EQUALIZERPRESET, Constants.DEFAULT_EQUALIZERPRESET));
 			equalizerAvailable = true;
 		} catch(Exception e) {
 			equalizerAvailable = false;
@@ -138,35 +105,9 @@ public class MusicService extends Service implements OnCompletionListener {
 		random = new Random(System.nanoTime()); // Necessary for song shuffle
 		
 		shakeListener = new ShakeListener(this);
-		if(preferences.getBoolean(PREFERENCE_SHAKEENABLED, false)) {
+		if(preferences.getBoolean(Constants.PREFERENCE_SHAKEENABLED, Constants.DEFAULT_SHAKEENABLED)) {
 			shakeListener.enable();
-		}
-		
-		loadPlaylists();
-		
-		final String lastDirectory = preferences.getString(PREFERENCE_LASTDIRECTORY, null); // Read the last used directory from preferences
-		
-		// The loading of the folder content is done in a separate thread to avoid keep the application blocked.
-		// When the service is ready the variable "ready" is set to true.
-		new Thread() {
-			public void run() {
-				if(lastDirectory==null) {
-					File startDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
-					if(!startDir.exists()) startDir = new File("/");
-					gotoDirectory(startDir);
-				} else {
-					File lastDir = new File(lastDirectory);
-					if(!lastDir.exists()) lastDir = new File("/");
-					gotoDirectory(lastDir);
-				}
-				loadLastSong();
-				ready = true;
-				lock.lock();
-				condition.signalAll();
-				lock.unlock();
-			}
-		}.start();
-		
+		}		
 	}
 	
 	/* Called when service is started. */
@@ -184,13 +125,13 @@ public class MusicService extends Service implements OnCompletionListener {
             @Override
             public void onReceive(Context context, Intent intent) {
             	if(intent.getAction().equals("com.andreadec.musicplayer.previous")) {
-            		previousSong();
+            		previousItem();
             	} else if(intent.getAction().equals("com.andreadec.musicplayer.playpause")) {
             		playPause();
             	} else if(intent.getAction().equals("com.andreadec.musicplayer.next")) {
-            		nextSong();
+            		nextItem();
             	} else if(intent.getAction().equals(AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
-            		if(preferences.getBoolean("stopPlayingWhenHeadsetDisconnected", false)) {
+            		if(preferences.getBoolean(Constants.PREFERENCE_STOPPLAYINGWHENHEADSETDISCONNECTED, Constants.DEFAULT_STOPPLAYINGWHENHEADSETDISCONNECTED)) {
 	            		pause();
             		}
             	}
@@ -198,40 +139,31 @@ public class MusicService extends Service implements OnCompletionListener {
         };
         registerReceiver(broadcastReceiver, intentFilter);
         
-        startForeground(NOTIFICATION_ID, notification);
+        loadLastSong();
         
+        startForeground(Constants.NOTIFICATION_MAIN, notification);
 		return START_STICKY;
 	}
 	
 	// Returns true if the song has been successfully loaded
 	private void loadLastSong() {
-		if(preferences.getBoolean("openLastSongOnStart", false)) {
-	        String lastPlayingSong = preferences.getString(PREFERENCE_LASTPLAYINGSONG, null);
-        	long lastPlayingSongFromPlaylistId = preferences.getLong(PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, -1);
+		if(preferences.getBoolean(Constants.PREFERENCE_OPENLASTSONGONSTART, Constants.DEFAULT_OPENLASTSONGONSTART)) {
+	        String lastPlayingSong = preferences.getString(Constants.PREFERENCE_LASTPLAYINGSONG, Constants.DEFAULT_LASTPLAYINGSONG);
+        	long lastPlayingSongFromPlaylistId = preferences.getLong(Constants.PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, Constants.DEFAULT_LASTPLAYINGSONGFROMPLAYLISTID);
         	if(lastPlayingSong!=null && (new File(lastPlayingSong).exists())) {
         		if(lastPlayingSongFromPlaylistId!=-1) {
-        			playSavedSongFromPlaylist(lastPlayingSongFromPlaylistId);
-        		} else if(lastPlayingSongFromPlaylistId==-1 && browsingSongs!=null) {
-        			File songDirectory = new File(lastPlayingSong).getParentFile();
-        			if(songDirectory==null) return;
-        			
-        			boolean found = false;
-        			for(Song s : browsingSongs) {
-		        		if(s.getUri().equals(lastPlayingSong)) {
-		        			playingSongs = browsingSongs;
-		        			playSong(new Song(lastPlayingSong), false);
-		        			found = true;
-		        			break;
-		        		}
-		        	}
-        			if(!found) {
-	        			gotoDirectory(songDirectory);
-	        			playingSongs = browsingSongs;
-	        			playSong(new Song(lastPlayingSong), false);
+        			PlaylistSong savedSong = Playlists.getSavedSongFromPlaylist(lastPlayingSongFromPlaylistId);
+        			if(savedSong!=null) {
+        				playItem(savedSong, false);
         			}
-		        }
-		        if(preferences.getBoolean("saveSongPosition", false)) {
-		        	int lastSongPosition = preferences.getInt(PREFERENCE_LASTSONGPOSITION, 0);
+        		} else {
+        			File songDirectory = new File(lastPlayingSong).getParentFile();
+        			BrowserSong song = new BrowserSong(lastPlayingSong, new BrowserDirectory(songDirectory));
+        			((MusicPlayerApplication)getApplication()).gotoDirectory(songDirectory);
+        			playItem(song, false);
+        		}
+		        if(preferences.getBoolean(Constants.PREFERENCE_SAVESONGPOSITION, Constants.DEFAULT_SAVESONGPOSITION)) {
+		        	int lastSongPosition = preferences.getInt(Constants.PREFERENCE_LASTSONGPOSITION, Constants.DEFAULT_LASTSONGPOSITION);
 		        	if(lastSongPosition<getDuration()) seekTo(lastSongPosition);
 		        }
         	}
@@ -242,40 +174,46 @@ public class MusicService extends Service implements OnCompletionListener {
 	@Override
 	public void onDestroy() {
 		telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE); // Stop listen for telephony events
-		notificationManager.cancel(NOTIFICATION_ID);
+		notificationManager.cancel(Constants.NOTIFICATION_MAIN);
 		unregisterReceiver(broadcastReceiver); // Disable broadcast receiver
 		
 		SharedPreferences.Editor editor = preferences.edit();
-		editor.putBoolean(PREFERENCE_SHUFFLE, shuffle);
-		editor.putBoolean(PREFERENCE_REPEAT, repeat);
-		editor.putBoolean(PREFERENCE_REPEATALL, repeatAll);
+		editor.putBoolean(Constants.PREFERENCE_SHUFFLE, shuffle);
+		editor.putBoolean(Constants.PREFERENCE_REPEAT, repeat);
+		editor.putBoolean(Constants.PREFERENCE_REPEATALL, repeatAll);
 		if(bassBoostAvailable) {
-			editor.putBoolean(PREFERENCE_BASSBOOST, getBassBoostEnabled());
-			editor.putInt(PREFERENCE_BASSBOOSTSTRENGTH, getBassBoostStrength());
+			editor.putBoolean(Constants.PREFERENCE_BASSBOOST, getBassBoostEnabled());
+			editor.putInt(Constants.PREFERENCE_BASSBOOSTSTRENGTH, getBassBoostStrength());
 		} else {
-			editor.remove(PREFERENCE_BASSBOOST);
-			editor.remove(PREFERENCE_BASSBOOSTSTRENGTH);
+			editor.remove(Constants.PREFERENCE_BASSBOOST);
+			editor.remove(Constants.PREFERENCE_BASSBOOSTSTRENGTH);
 		}
 		if(equalizerAvailable) {
-			editor.putBoolean(PREFERENCE_EQUALIZER, getEqualizerEnabled());
-			editor.putInt(PREFERENCE_EQUALIZERPRESET, getEqualizerPreset());
+			editor.putBoolean(Constants.PREFERENCE_EQUALIZER, getEqualizerEnabled());
+			editor.putInt(Constants.PREFERENCE_EQUALIZERPRESET, getEqualizerPreset());
 		} else {
-			editor.remove(PREFERENCE_EQUALIZER);
-			editor.remove(PREFERENCE_EQUALIZERPRESET);
+			editor.remove(Constants.PREFERENCE_EQUALIZER);
+			editor.remove(Constants.PREFERENCE_EQUALIZERPRESET);
 		}
-		editor.putBoolean(PREFERENCE_SHAKEENABLED, isShakeEnabled());
-		if(playingSong!=null && !playingSong.isWebRadio()) {
-			editor.putString(PREFERENCE_LASTPLAYINGSONG, playingSong.getUri());
-			editor.putInt(PREFERENCE_LASTSONGPOSITION, getCurrentPosition());
-			if(playingPlaylist) {
-				editor.putLong(PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, ((PlaylistSong)playingSong).getId());
+		editor.putBoolean(Constants.PREFERENCE_SHAKEENABLED, isShakeEnabled());
+		if(currentPlayingItem!=null) {
+			if(currentPlayingItem instanceof BrowserSong) {
+				editor.putString(Constants.PREFERENCE_LASTPLAYINGSONG, currentPlayingItem.getPlayableUri());
+				editor.putInt(Constants.PREFERENCE_LASTSONGPOSITION, getCurrentPosition());
+				editor.putLong(Constants.PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, -1);
+			} else if(currentPlayingItem instanceof PlaylistSong) {
+				editor.putString(Constants.PREFERENCE_LASTPLAYINGSONG, currentPlayingItem.getPlayableUri());
+				editor.putInt(Constants.PREFERENCE_LASTSONGPOSITION, getCurrentPosition());
+				editor.putLong(Constants.PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, ((PlaylistSong)currentPlayingItem).getId());
 			} else {
-				editor.putLong(PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, -1);
+				editor.putString(Constants.PREFERENCE_LASTPLAYINGSONG, null);
+				editor.putLong(Constants.PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, -1);
 			}
 		} else {
-			editor.putString(PREFERENCE_LASTPLAYINGSONG, null);
-			editor.putLong(PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, -1);
+			editor.putString(Constants.PREFERENCE_LASTPLAYINGSONG, null);
+			editor.putLong(Constants.PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID, -1);
 		}
+		editor.putString(Constants.PREFERENCE_LASTDIRECTORY, ((MusicPlayerApplication)getApplication()).getCurrentDirectory().getDirectory().getAbsolutePath());
 		editor.commit();
 		
 		shakeListener.disable();
@@ -283,57 +221,20 @@ public class MusicService extends Service implements OnCompletionListener {
 		stopForeground(true);
 	}
 	
-	/* Moves to a new directory */
-	public void gotoDirectory(File directory) {
-		browsingDir = directory;
-		browsingSubdirs = getSubfoldersInDirectory(directory);
-		browsingSongs = getSongsInDirectory(directory);
-		
-		SharedPreferences.Editor editor = preferences.edit();
-		editor.putString(PREFERENCE_LASTDIRECTORY, directory.getAbsolutePath());
-		editor.commit();
+	public boolean playItem(PlayableItem item) {
+		return playItem(item, true);
 	}
 	
-	public boolean playSongFromBrowser(Song song) {
-		if(playingSongs==null || !playingSongs.contains(song) || playingPlaylist) playingSongs = browsingSongs;
-		playingPlaylist = false;
-		return playSong(song, true);
-	}
-	
-	public boolean playSongFromPlaylist(PlaylistSong song, boolean startPlaying) {
-		playingSongs = song.getPlaylist().getSongs();
-		playingPlaylist = true;
-		return playSong(song, startPlaying);
-	}
-	
-	public boolean playSongFromSearch(Song song) {
-		File songDirectory = new File(song.getUri()).getParentFile();
-		gotoDirectory(songDirectory);
-		playingSongs = browsingSongs;
-		playingPlaylist = false;
-		return playSong(song, true);
-	}
-	
-	public boolean playWebRadio(Song song) {
-		playingSongs = new ArrayList<Song>();
-		playingPlaylist = false;
-		return playSong(song, true);
-	}
-	
-	private boolean playSong(Song song) {
-		return playSong(song, true);
-	}
-	
-	private boolean playSong(Song song, boolean startPlaying) {
-		playingSong = song;
+	public boolean playItem(PlayableItem item, boolean startPlaying) {
+		currentPlayingItem = item;
 		mediaPlayer.reset();
-		mediaPlayer.setOnCompletionListener(null); // Sets an handler for "song completed" event
+		mediaPlayer.setOnCompletionListener(null);
 		try {
-			mediaPlayer.setDataSource(song.getUri());
+			mediaPlayer.setDataSource(item.getPlayableUri());
 			try {
 				mediaPlayer.prepare();
 			} catch (IOException e) {
-				playingSong = null;
+				currentPlayingItem = null;
 				return false;
 			}
 			mediaPlayer.setOnCompletionListener(this);
@@ -346,14 +247,12 @@ public class MusicService extends Service implements OnCompletionListener {
 			
 			return true;
 		} catch (Exception e) {
-			playingSong = null;
+			currentPlayingItem = null;
 			updateNotificationMessage();
 			sendBroadcast(new Intent("com.andreadec.musicplayer.newsong")); // Sends a broadcast to the activity
 			return false;
 		}
 	}
-	
-	
 	
 
 	/* BASS BOOST */
@@ -375,8 +274,6 @@ public class MusicService extends Service implements OnCompletionListener {
 	public int getBassBoostStrength() {
 		return bassBoost.getRoundedStrength();
 	}
-	
-	
 	
 	
 	/* EQUALIZER */
@@ -408,105 +305,6 @@ public class MusicService extends Service implements OnCompletionListener {
 	}
 	
 	
-	
-	
-	/* PLAYLISTS */
-	
-	private void loadPlaylists() {
-		playlists = new ArrayList<Playlist>();
-		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(this);
-		SQLiteDatabase db = playlistsDatabase.getReadableDatabase();
-		Cursor cursor = db.rawQuery("SELECT id, name FROM Playlists ORDER BY position", null);
-		while(cursor.moveToNext()) {
-			long id = cursor.getLong(0);
-			String name = cursor.getString(1);
-			Playlist playlist = new Playlist(this, id, name);
-			playlists.add(playlist);
-		}
-		cursor.close();
-		db.close();
-	}
-	
-	public ArrayList<Playlist> getPlaylists() {
-		return playlists;
-	}
-	
-	public Playlist addPlaylist(String name) {
-		long id = -1;
-		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(this);
-		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
-		ContentValues values = new ContentValues();
-		values.put("name", name);
-		try {
-			id = db.insertOrThrow("Playlists", null, values);
-		} catch(Exception e) {
-		} finally {
-			db.close();
-		}
-		if(id==-1) return null; // Something went wrong
-		
-		Playlist playlist = new Playlist(this, id, name);
-		playlists.add(playlist);
-		Collections.sort(playlists, new PlaylistsComparator(preferences.getString("playlistsSortingMethod", "name")));
-		return playlist;
-	}
-	
-	public void deletePlaylist(Playlist playlist) {
-		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(this);
-		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
-		db.delete("SongsInPlaylist", "idPlaylist="+playlist.getId(), null);
-		db.delete("Playlists", "id="+playlist.getId(), null);
-		db.close();
-		playlists.remove(playlist);
-	}
-	
-	public void sortPlaylists(int from, int to) {
-		if(to>from) {
-			Collections.rotate(playlists.subList(from, to+1), -1);
-		} else {
-			Collections.rotate(playlists.subList(to, from+1), +1);
-		}
-		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(this);
-		SQLiteDatabase db = playlistsDatabase.getWritableDatabase();
-		for(int i=0; i<playlists.size(); i++) {
-			Playlist playlist = playlists.get(i);
-			ContentValues values = new ContentValues();
-			values.put("position", i);
-			db.update("Playlists", values, "id="+playlist.getId(), null);
-		}
-		db.close();
-	}
-
-	private void playSavedSongFromPlaylist(long idSong) {
-		PlaylistsDatabase playlistsDatabase = new PlaylistsDatabase(this);
-		SQLiteDatabase db = playlistsDatabase.getReadableDatabase();
-		Cursor cursor = db.rawQuery("SELECT idPlaylist, uri, artist, title FROM SongsInPlaylist WHERE idSong="+idSong, null);
-		if(cursor.moveToNext()) {
-			Playlist playlist = null;
-			long idPlaylist = cursor.getLong(0);
-			for(Playlist p : playlists) {
-				if(p.getId()==idPlaylist) playlist=p;
-				break;
-			}
-			String uri = cursor.getString(1);
-			String artist = cursor.getString(2);
-			String title = cursor.getString(3);
-			PlaylistSong song = new PlaylistSong(uri, artist, title, idSong, playlist);
-			playSongFromPlaylist(song, false);
-		}
-		cursor.close();
-		db.close();
-	}
-	
-	public boolean getPlayingPlaylist() {
-		return playingPlaylist;
-	}
-	
-	
-	
-	
-	
-	
 	/* SHAKE SENSOR */
 	public boolean isShakeEnabled() {
 		return shakeListener.isEnabled();
@@ -515,13 +313,7 @@ public class MusicService extends Service implements OnCompletionListener {
 	public void toggleShake() {
 		if(shakeListener.isEnabled()) shakeListener.disable();
 		else shakeListener.enable();
-	}
-	
-	
-	
-	
-	
-	
+	}	
 	
 	
 	/* Updates the notification. */
@@ -537,11 +329,11 @@ public class MusicService extends Service implements OnCompletionListener {
 		notificationBuilder.setContentIntent(pendingIntent);
 		
 		String notificationMessage = "";
-		if(playingSong==null) {
+		if(currentPlayingItem==null) {
 			notificationMessage = getResources().getString(R.string.noSong);
 		} else {
-			if(!playingSong.getArtist().equals("")) notificationMessage = playingSong.getArtist()+" - ";
-			notificationMessage += playingSong.getTitle();
+			if(currentPlayingItem.getArtist()!=null && !currentPlayingItem.getArtist().equals("")) notificationMessage = currentPlayingItem.getArtist()+" - ";
+			notificationMessage += currentPlayingItem.getTitle();
 		}
 		
 		notificationBuilder.addAction(R.drawable.previous, getResources().getString(R.string.previous), previousPendingIntent);
@@ -551,12 +343,12 @@ public class MusicService extends Service implements OnCompletionListener {
 		notificationBuilder.setContentText(notificationMessage);
 		notification = notificationBuilder.build();
 		
-		notificationManager.notify(NOTIFICATION_ID, notification);
+		notificationManager.notify(Constants.NOTIFICATION_MAIN, notification);
 	}
 	
 	/* Toggles play/pause status. */
 	public void playPause() {
-		if(playingSong==null) return;
+		if(currentPlayingItem==null) return;
 		if (mediaPlayer.isPlaying()) {
 			mediaPlayer.pause();
 		} else {
@@ -568,7 +360,7 @@ public class MusicService extends Service implements OnCompletionListener {
 	
 	/* Starts playing song. */
 	public void play() {
-		if(playingSong==null) return;
+		if(currentPlayingItem==null) return;
 		if(!mediaPlayer.isPlaying()) mediaPlayer.start();
 		updateNotificationMessage();
 		sendBroadcast(new Intent("com.andreadec.musicplayer.playpausechanged"));
@@ -576,7 +368,7 @@ public class MusicService extends Service implements OnCompletionListener {
 	
 	/* Pauses playing song. */
 	public void pause() {
-		if(playingSong==null) return;
+		if(currentPlayingItem==null) return;
 		if (mediaPlayer.isPlaying()) mediaPlayer.pause();
 		updateNotificationMessage();
 		sendBroadcast(new Intent("com.andreadec.musicplayer.playpausechanged"));
@@ -584,60 +376,57 @@ public class MusicService extends Service implements OnCompletionListener {
 	
 	/* Seeks to a position. */
 	public void seekTo(int progress) {
-		/*if(mediaPlayer.isPlaying())*/ mediaPlayer.seekTo(progress);
+		mediaPlayer.seekTo(progress);
 	}
 	
 	/* Plays the previous song */
-	public void previousSong() {
-		if(playingSong==null || playingSongs==null || playingSongs.size()<1 || playingSong.isWebRadio()) return;
+	public void previousItem() {
+		if(currentPlayingItem==null) return;
 		
 		if(isPlaying() && getCurrentPosition()>2000) {
-			playSong(playingSong);
+			playItem(currentPlayingItem);
 			return;
 		}
 		
-		int index = playingSongs.indexOf(playingSong);
-		
 		if(repeat) {
-			playSong(playingSong);
+			playItem(currentPlayingItem);
 			return;
 		}
 		
 		if(shuffle) {
-			playSong(playingSongs.get(random.nextInt(playingSongs.size())));
+			randomItem();
 			return;
 		}
 		
-		if(index>0) playSong(playingSongs.get(index-1));
-		else playSong(playingSong);
+		PlayableItem previousItem = currentPlayingItem.getPrevious();
+		if(previousItem!=null) {
+			playItem(previousItem);
+		}
 	}
 	
 	/* Plays the next song */
-	public void nextSong() {
-		if(playingSong==null || playingSongs==null || playingSongs.size()<1 || playingSong.isWebRadio()) return;
-		int index = playingSongs.indexOf(playingSong);
+	public void nextItem() {
+		if(currentPlayingItem==null) return;
 		
 		if(repeat) {
-			playSong(playingSong);
+			playItem(currentPlayingItem);
 			return;
 		}
 		
 		if(shuffle) {
-			playSong(playingSongs.get(random.nextInt(playingSongs.size())));
-			return;
+			randomItem();
 		}
 		
-		if(index<playingSongs.size()-1) {
-			playSong(playingSongs.get(index+1));
-		} else {
-			if(repeatAll) {
-				playSong(playingSongs.get(0));
-			} else {
-				if(!isPlaying()) {
-					playingSong = null;
-					sendBroadcast(new Intent("com.andreadec.musicplayer.newsong"));
-				}
-			}
+		PlayableItem nextItem = currentPlayingItem.getNext(repeatAll);
+		if(nextItem!=null) {
+			playItem(nextItem);
+		}
+	}
+	
+	private void randomItem() {
+		PlayableItem randomItem = currentPlayingItem.getRandom(random);
+		if(randomItem!=null) {
+			playItem(randomItem);
 		}
 	}
 	
@@ -652,45 +441,30 @@ public class MusicService extends Service implements OnCompletionListener {
 		}
 	}
 	
-	/* Gets current browsing directory. */
-	public File getBrowsingDir() {
-		return browsingDir;
-	}
-	
-	/* Gets subdirectories of current browsing directory. */
-	public ArrayList<File> getBrowsingSubdirs() {
-		return browsingSubdirs;
-	}
-	
-	/* Gets songs in the current browsing directory. */
-	public ArrayList<Song> getBrowsingSongs() {
-		return browsingSongs;
-	}
-	
-	/* Gets current playing song. */
-	public Song getPlayingSong() {
-		return playingSong;
+	/* Gets current playing item. */
+	public PlayableItem getCurrentPlayingItem() {
+		return currentPlayingItem;
 	}
 	
 	/* Gets current song durations. */
 	public int getDuration() {
-		if(playingSong==null) return 100;
+		if(currentPlayingItem==null) return 100;
 		return mediaPlayer.getDuration();
 	}
 	/* Gets current position in the song. */
 	public int getCurrentPosition() {
-		if(playingSong==null) return 0;
+		if(currentPlayingItem==null) return 0;
 		return mediaPlayer.getCurrentPosition();
 	}
 	/* Checks if a song is currently being played */
 	public boolean isPlaying() {
-		if(playingSong==null) return false;
+		if(currentPlayingItem==null) return false;
 		return mediaPlayer.isPlaying();
 	}
 
 	@Override
 	public void onCompletion(MediaPlayer player) {
-		nextSong();
+		nextItem();
 	}
 	
 	public boolean getRepeat() {
@@ -716,10 +490,6 @@ public class MusicService extends Service implements OnCompletionListener {
 	public void setRepeatAll(boolean repeatAll) {
 		this.repeatAll = repeatAll;
 	}
-	
-	public boolean isReady() {
-		return ready;
-	}
 
 	/* Phone state listener class. */
 	private class MusicPhoneStateListener extends PhoneStateListener {
@@ -727,7 +497,7 @@ public class MusicService extends Service implements OnCompletionListener {
 		public void onCallStateChanged(int state, String incomingNumber) {
 	    	switch(state) {
 	            case TelephonyManager.CALL_STATE_IDLE:
-	            	if(preferences.getBoolean("restartPlaybackAfterPhoneCall", false) && wasPlaying) play();
+	            	if(preferences.getBoolean(Constants.PREFERENCE_RESTARTPLAYBACKAFTERPHONECALL, Constants.DEFAULT_RESTARTPLAYBACKAFTERPHONECALL) && wasPlaying) play();
 	                break;
 	            case TelephonyManager.CALL_STATE_OFFHOOK:
 	            	wasPlaying = isPlaying();
@@ -739,89 +509,5 @@ public class MusicService extends Service implements OnCompletionListener {
 	            	break;
 	        }
 	    }
-	}
-	
-	public ArrayList<Song> getSongsInDirectory(File directory) {
-		String sortingMethod = preferences.getString("songsSortingMethod", "nat");
-		if(preferences.getBoolean("enableCache", true)) {
-			return getSongsInDirectoryWithCache(directory, sortingMethod);
-		} else {
-			return getSongsInDirectoryWithoutCache(directory, sortingMethod);
-		}
-	}
-	
-	private ArrayList<Song> getSongsInDirectoryWithoutCache(File directory, String sortingMethod) {
-		ArrayList<Song> songs = new ArrayList<Song>();
-		File files[] = directory.listFiles(new AudioFileFilter());
-		for (File file : files) {
-			Song song = new Song(file.getAbsolutePath());
-			songs.add(song);
-		}
-		Collections.sort(songs, new SongsComparator(sortingMethod));
-		return songs;
-	}
-	
-	/*
-	 * ----- VERSION WITH SEPARATE THREAD TO SAVE SONGS IN DB -----
-	 */
-	private ArrayList<Song> getSongsInDirectoryWithCache(File directory, String sortingMethod) {
-		ArrayList<Song> songs = new ArrayList<Song>();
-		File files[] = directory.listFiles(new AudioFileFilter());
-		
-		SongsDatabase songsDatabase = new SongsDatabase(this);
-		final LinkedList<Song> songsToInsertInDB = new LinkedList<Song>();
-		SQLiteDatabase db = songsDatabase.getWritableDatabase();
-		
-		for (File file : files) {
-			String uri = file.getAbsolutePath();
-			Song song;
-			
-			Cursor cursor = db.rawQuery("SELECT artist, title, trackNumber FROM Songs WHERE uri=\""+uri+"\"", null);
-			if(cursor.moveToNext()) {
-	        	Integer trackNumber = cursor.getInt(2);
-	        	if(trackNumber==-1) trackNumber=null;
-	        	song = new Song(uri, cursor.getString(0), cursor.getString(1), trackNumber);
-	        } else {
-	        	song = new Song(file.getAbsolutePath());
-				songsToInsertInDB.add(song);
-	        }
-			songs.add(song);
-		}
-		db.close();
-		
-		Collections.sort(songs, new SongsComparator(sortingMethod));
-		
-		if(songsToInsertInDB.size()>0) {
-			new Thread() {
-				public void run() {
-					SongsDatabase songsDatabase2 = new SongsDatabase(MusicService.this);
-					SQLiteDatabase db2 = songsDatabase2.getWritableDatabase();
-					for(Song song : songsToInsertInDB) {
-						ContentValues values = new ContentValues();
-						values.put("uri", song.getUri());
-						values.put("artist", song.getArtist());
-						values.put("title", song.getTitle());
-						Integer trackNumber = song.getTrackNumber();
-						if(trackNumber==null) trackNumber=-1;
-						values.put("trackNumber", trackNumber);
-						db2.insertWithOnConflict("Songs", null, values, SQLiteDatabase.CONFLICT_REPLACE);
-					}
-					db2.close();
-				}
-			}.start();
-		}
-		
-		return songs;
-	}
-	
-	// Lists all the subfolders of a given directory
-	private ArrayList<File> getSubfoldersInDirectory(File directory) {
-		ArrayList<File> subfolders = new ArrayList<File>();
-		File files[] = directory.listFiles(new DirectoryFilter());
-		for (File file : files) {
-			subfolders.add(file);
-		}
-		Collections.sort(subfolders);
-		return subfolders;
 	}
 }

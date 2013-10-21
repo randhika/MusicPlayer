@@ -14,13 +14,15 @@ So I decided to write this application for my personal use and to publish it hop
 - Replay, shuffle
 - Bass booster, equalizer
 - Songs search by title or artist
+- Listen to podcasts
 - Possibility to execute commands shaking the device
 
 
 ## Required permissions
 - READ\_PHONE\_STATE (read phone status and identity): necessary to be notified if a phone call arrives, so that the playback can be stopped;
 - WAKE\_LOCK (prevent phone from sleeping): necessary to let the music keep playing when the screen is turned off;
-- INTERNET (full network access): necessary to listen to web radios;
+- ACCESS\_NETWORK\_STATE (view network connections): necessary to check if a network connection is available;
+- INTERNET (full network access): necessary to listen to web radios and to download podcasts;
 - READ\_EXTERNAL\_STORAGE (test access to protected storage): necessary to import web radios list;
 - WRITE\_EXTERNAL\_STORAGE (modify or delete contents of your SD card): necessary to export web radios list.
 

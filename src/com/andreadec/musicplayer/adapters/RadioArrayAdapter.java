@@ -17,28 +17,80 @@
 package com.andreadec.musicplayer.adapters;
 
 import java.util.*;
-import android.content.*;
+
 import android.view.*;
 import android.widget.*;
+
 import com.andreadec.musicplayer.*;
 
-public class RadioArrayAdapter extends ArrayAdapter<Song> {
-	private final Context context;
-	private final ArrayList<Song> values;
+public class RadioArrayAdapter extends ArrayAdapter<Object> {
+	private final ArrayList<Object> values;
+	private LayoutInflater inflater;
+	private final static int TYPE_ACTION=0, TYPE_RADIO=1;
+	private Radio playingRadio;
  
-	public RadioArrayAdapter(Context context, ArrayList<Song> values) {
-		super(context, R.layout.song_item, values);
-		this.context = context;
+	public RadioArrayAdapter(MainActivity activity, ArrayList<Object> values, Radio playingRadio) {
+		super(activity, R.layout.song_item, values);
 		this.values = values;
+		this.playingRadio = playingRadio;
+		inflater = activity.getLayoutInflater();
+	}
+	
+	@Override
+	public int getViewTypeCount() {
+		return 2;
+	}
+	@Override
+	public int getItemViewType(int position) {
+		Object value = values.get(position);
+		if(value instanceof Action) return TYPE_ACTION;
+		else return TYPE_RADIO;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public View getView(int position, View view, ViewGroup parent) {
-		Song value = values.get(position);
-		LayoutInflater inflater = ((MainActivity)context).getLayoutInflater();
-		view = inflater.inflate(R.layout.radio_item, parent, false);
-		TextView textViewRadioItem = (TextView)view.findViewById(R.id.textViewRadioItem);
-		textViewRadioItem.setText(value.getTitle());
+		Object item = values.get(position);
+		int type = getItemViewType(position);
+		ViewHolder viewHolder;
+		
+		if(view==null) {
+			viewHolder = new ViewHolder();
+			if(type==TYPE_ACTION) {
+				view = inflater.inflate(R.layout.action_item, parent, false);
+				viewHolder.text = (TextView)view.findViewById(R.id.textView);
+				viewHolder.image = (ImageView)view.findViewById(R.id.imageView);
+			} else if(type==TYPE_RADIO) {
+				view = inflater.inflate(R.layout.radio_item, parent, false);
+				viewHolder.text = (TextView)view.findViewById(R.id.textViewRadioItem);
+				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
+			}
+		} else {
+			viewHolder = (ViewHolder)view.getTag();
+		}
+		
+		if(type==TYPE_ACTION) {
+			Action action = (Action)item;
+			viewHolder.text.setText(action.msg);
+			viewHolder.image.setImageResource(R.drawable.newcontent);
+		} else if(type==TYPE_RADIO) {
+			Radio radio = (Radio)item;
+			viewHolder.text.setText(radio.getTitle());
+			if(radio.equals(playingRadio)) {
+				view.setBackgroundResource(R.color.light_blue);
+				viewHolder.image.setImageResource(R.drawable.play_blue);
+			} else {
+				view.setBackgroundDrawable(null);
+				viewHolder.image.setImageResource(R.drawable.microphone);
+			}
+		}
+		
+		view.setTag(viewHolder);
 		return view;
+	}
+	
+	private class ViewHolder {
+		public TextView text;
+		public ImageView image;
 	}
 }

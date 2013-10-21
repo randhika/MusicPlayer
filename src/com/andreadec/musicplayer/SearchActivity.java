@@ -47,7 +47,7 @@ public class SearchActivity extends Activity implements OnClickListener, OnItemC
         
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         
-        if(preferences.getBoolean("showHelpOverlayIndexing", true) && preferences.getString(MusicService.PREFERENCE_BASEFOLDER, "/").equals("/")) {
+        if(preferences.getBoolean(Constants.PREFERENCE_SHOWHELPOVERLAYINDEXING, true) && preferences.getString(Constants.PREFERENCE_BASEFOLDER, "/").equals("/")) {
         	final FrameLayout frameLayout = new FrameLayout(this);
         	LayoutInflater layoutInflater = getLayoutInflater();
         	layoutInflater.inflate(R.layout.layout_search, frameLayout);
@@ -108,33 +108,34 @@ public class SearchActivity extends Activity implements OnClickListener, OnItemC
 	private void search(String str) {
 		str = str.replace("\"", "");
 		str = str.trim();
-		ArrayList<Song> results = new ArrayList<Song>();
+		ArrayList<BrowserSong> results = new ArrayList<BrowserSong>();
 		
-		SongsDatabase songsDatabase = new SongsDatabase(this);
+		SongsDatabase songsDatabase = new SongsDatabase();
 		SQLiteDatabase db = songsDatabase.getWritableDatabase();
 		
-		Cursor cursor = db.rawQuery("SELECT uri, artist, title, trackNumber FROM Songs WHERE artist LIKE \"%"+str+"%\" OR title LIKE \"%"+str+"%\"", null);
+		Cursor cursor = db.rawQuery("SELECT uri, artist, title, trackNumber, hasImage FROM Songs WHERE artist LIKE \"%"+str+"%\" OR title LIKE \"%"+str+"%\"", null);
 		while(cursor.moveToNext()) {
 			String uri = cursor.getString(0);
 			String artist = cursor.getString(1);
 			String title = cursor.getString(2);
         	Integer trackNumber = cursor.getInt(3);
         	if(trackNumber==-1) trackNumber=null;
-        	Song song = new Song(uri, artist, title, trackNumber);
+        	boolean hasImage = cursor.getInt(4)==1;
+        	BrowserSong song = new BrowserSong(uri, artist, title, trackNumber, hasImage, null);
         	results.add(song);
         }
 		db.close();
 		
 		if(results.size()==0) {
-			Dialogs.showMessageDialog(this, R.string.noResultsFoundTitle, R.string.noResultsFoundMessage);
+			Utils.showMessageDialog(this, R.string.noResultsFoundTitle, R.string.noResultsFoundMessage);
 		} else {
 			SearchResultsArrayAdapter adapter = new SearchResultsArrayAdapter(this, results);
 			listViewSearch.setAdapter(adapter);
 		}
 	}
 	
-	private void deleteSongFromCache(Song song) {
-		SongsDatabase songsDatabase = new SongsDatabase(this);
+	private void deleteSongFromCache(BrowserSong song) {
+		SongsDatabase songsDatabase = new SongsDatabase();
 		SQLiteDatabase db = songsDatabase.getWritableDatabase();
 		db.delete("Songs", "uri=\""+song.getUri()+"\"", null);
 		db.close();
@@ -143,12 +144,12 @@ public class SearchActivity extends Activity implements OnClickListener, OnItemC
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		SearchResultsArrayAdapter adapter = (SearchResultsArrayAdapter)listViewSearch.getAdapter();
-		Song song = adapter.getItem(position);
+		BrowserSong song = adapter.getItem(position);
 		Intent intent = getIntent();
 		intent.putExtra("song", song);
 		File songFile = new File(song.getUri());
 		if(!songFile.exists()) {
-			Dialogs.showMessageDialog(this, R.string.notFound, R.string.songNotFound);
+			Utils.showMessageDialog(this, R.string.notFound, R.string.songNotFound);
 			deleteSongFromCache(song);
 			return;
 		}

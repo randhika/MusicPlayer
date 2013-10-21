@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
     
-    <PreferenceCategory android:title="@string/visualization">
+    <PreferenceCategory android:title="@string/appearance">
     	<ListPreference
     	    android:entryValues="@array/songsSortingValues"
     	    android:entries="@array/songsSortingKeys"
@@ -15,6 +15,15 @@
     	    android:entries="@array/titleLinesKeys"
     	    android:key="titleLines"
     	    android:defaultValue="2" />
+    	<CheckBoxPreference
+    	    android:key="showSongImage"
+    	    android:title="@string/showSongImage"
+    	    android:defaultValue="true" />
+    	<CheckBoxPreference
+    	    android:key="smallPageIndicator"
+    	    android:title="@string/smallPageIndicator"
+    	    android:summary="@string/restartToApply"
+    	    android:defaultValue="true" />
     </PreferenceCategory>
     
     <PreferenceCategory android:title="@string/startingOptions">
@@ -43,6 +52,15 @@
 	        android:key="restartPlaybackAfterPhoneCall"
 	        android:title="@string/restartPlaybackAfterPhoneCall"
 	        android:summary="@string/restartPlaybackAfterPhoneCallSummary" />
+	    <CheckBoxPreference
+	        android:key="enableBackDoublePressToQuitApp"
+	        android:title="@string/enableBackDoublePressToQuitApp"
+	        android:summary="@string/enableBackDoublePressToQuitAppSummary"
+	        android:defaultValue="true" />
+	    <EditTextPreference
+	        android:key="podcastsDirectory"
+	        android:title="@string/podcastsDirectory"
+	        android:summary="@string/podcastsDirectorySummary" />
 	</PreferenceCategory>
 	
     <PreferenceCategory android:title="@string/cache">
@@ -61,15 +79,15 @@
             android:summary="@string/indexBaseFolderSummary" />
     </PreferenceCategory>
     
-    <PreferenceCategory android:title="@string/webRadio">
+    <PreferenceCategory android:title="@string/importExport">
         <Preference 
-            android:key="importRadio"
-            android:title="@string/importRadio"
-            android:summary="@string/importRadioSummary" />
+            android:key="import"
+            android:title="@string/importMsg"
+            android:summary="@string/importSummary" />
         <Preference 
-            android:key="exportRadio"
-            android:title="@string/exportRadio"
-            android:summary="@string/exportRadioSummary" />
+            android:key="export"
+            android:title="@string/export"
+            android:summary="@string/exportSummary" />
     </PreferenceCategory>
     
     <PreferenceCategory android:title="@string/shakeSensor">

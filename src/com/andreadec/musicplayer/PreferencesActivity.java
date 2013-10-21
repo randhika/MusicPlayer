@@ -31,7 +31,6 @@ import org.xmlpull.v1.XmlSerializer;
 import android.annotation.SuppressLint;
 import android.app.*;
 import android.content.*;
-import android.database.*;
 import android.database.sqlite.*;
 import android.os.*;
 import android.preference.*;
@@ -43,10 +42,10 @@ import android.widget.*;
 import com.andreadec.musicplayer.database.*;
 
 public class PreferencesActivity extends PreferenceActivity implements OnPreferenceClickListener {
-	private final static String DEFAULT_RADIO_FILENAME = Environment.getExternalStorageDirectory() + "/musicplayer_webradio.xml";
+	private final static String DEFAULT_IMPORTEXPORT_FILENAME = Environment.getExternalStorageDirectory() + "/musicplayer_info.xml";
 	
 	private SharedPreferences preferences;
-	private Preference preferenceClearCache, preferenceIndexBaseFolder, preferenceAbout, importRadio, exportRadio;
+	private Preference preferenceClearCache, preferenceIndexBaseFolder, preferenceAbout, preferenceImport, preferenceExport;
 	
 	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
@@ -64,8 +63,8 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
     	preferenceClearCache = findPreference("clearCache");
     	preferenceIndexBaseFolder = findPreference("indexBaseFolder");
     	preferenceAbout = findPreference("about");
-    	importRadio = findPreference("importRadio");
-    	exportRadio = findPreference("exportRadio");
+    	preferenceImport = findPreference("import");
+    	preferenceExport = findPreference("export");
     	
     	updateCacheSize();
     	updateBaseFolder();
@@ -73,8 +72,14 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
     	preferenceClearCache.setOnPreferenceClickListener(this);
     	preferenceIndexBaseFolder.setOnPreferenceClickListener(this);
     	preferenceAbout.setOnPreferenceClickListener(this);
-    	importRadio.setOnPreferenceClickListener(this);
-    	exportRadio.setOnPreferenceClickListener(this);
+    	preferenceImport.setOnPreferenceClickListener(this);
+    	preferenceExport.setOnPreferenceClickListener(this);
+    	
+    	String podcastsDirectory = preferences.getString(Constants.PREFERENCE_PODCASTSDIRECTORY, null);
+    	if(podcastsDirectory==null || podcastsDirectory.equals("")) {
+    		EditTextPreference preferencePodcastsDirectory = (EditTextPreference)findPreference("podcastsDirectory");
+    		preferencePodcastsDirectory.setText(Podcast.DEFAULT_PODCASTS_PATH);
+    	}
 	}
 	
 	@Override
@@ -105,9 +110,9 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 			builder.show();
 			return true;
 		} else if(preference.equals(preferenceIndexBaseFolder)) {
-			String baseFolder = preferences.getString(MusicService.PREFERENCE_BASEFOLDER, "/");
+			String baseFolder = preferences.getString(Constants.PREFERENCE_BASEFOLDER, "/");
 			if(baseFolder.equals("/")) {
-				Dialogs.showMessageDialog(this, R.string.baseFolderNotSetTitle, R.string.baseFolderNotSetMessage);
+				Utils.showMessageDialog(this, R.string.baseFolderNotSetTitle, R.string.baseFolderNotSetMessage);
 				return true;
 			}
 			updateBaseFolder();
@@ -117,10 +122,10 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 			startService(indexIntent);
 		} else if(preference.equals(preferenceAbout)) {
 			startActivity(new Intent(this, AboutActivity.class));
-		} else if(preference.equals(importRadio)) {
-			importRadio();
-		} else if(preference.equals(exportRadio)) {
-			exportRadio();
+		} else if(preference.equals(preferenceImport)) {
+			doImport();
+		} else if(preference.equals(preferenceExport)) {
+			doExport();
 		}
 		return false;
 	}
@@ -132,7 +137,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 	}
 	
 	private void updateBaseFolder() {
-		String baseFolder = preferences.getString(MusicService.PREFERENCE_BASEFOLDER, null);
+		String baseFolder = preferences.getString(Constants.PREFERENCE_BASEFOLDER, null);
 		String summary = getResources().getString(R.string.indexBaseFolderSummary) + "\n\n";
 		summary += getResources().getString(R.string.currentBaseFolder) + " ";
 		if(baseFolder==null) {
@@ -146,27 +151,27 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 	}
 	
 	private void clearCache() {
-		SQLiteDatabase db = new SongsDatabase(this).getWritableDatabase();
+		SQLiteDatabase db = new SongsDatabase().getWritableDatabase();
 		db.delete("Songs", "", null);
 		db.close();
 		Toast.makeText(this, R.string.cacheCleared, Toast.LENGTH_LONG).show();
 		updateCacheSize();
 	}
 	
-	private void importRadio() {
-		AlertDialog dialog = new AlertDialog.Builder(this).create();
-		dialog.setTitle(R.string.importRadio);
-		dialog.setMessage(getResources().getString(R.string.importConfirm, DEFAULT_RADIO_FILENAME));
-		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+	private void doImport() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.importMsg);
+		builder.setMessage(getResources().getString(R.string.importConfirm, DEFAULT_IMPORTEXPORT_FILENAME));
+		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
-				importRadio(DEFAULT_RADIO_FILENAME);
+				doImport(DEFAULT_IMPORTEXPORT_FILENAME);
 			}
 		});
-		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
-		dialog.show();
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
 	}
 	
-	private void importRadio(String filename) {
+	private void doImport(String filename) {
 		if(filename==null) return;
 		Log.i("Import file", filename);
 		File file = new File(filename.replace("file://", ""));
@@ -177,25 +182,25 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 			Document doc = docBuilder.parse(file);
 			doc.getDocumentElement().normalize();
 	
-			NodeList streams = doc.getElementsByTagName("stream");
-			for(int i=0; i<streams.getLength(); i++) {
-				Element stream = (Element)streams.item(i);
-				String url = stream.getAttribute("url");
-				String name = stream.getAttribute("name");
+			NodeList radios = doc.getElementsByTagName("radio");
+			for(int i=0; i<radios.getLength(); i++) {
+				Element radio = (Element)radios.item(i);
+				String url = radio.getAttribute("url");
+				String name = radio.getAttribute("name");
 				if(url==null || url.equals("")) continue;
 				if(name==null || name.equals("")) name = url;
-				
-				WebRadioDatabase webRadioDatabase = new WebRadioDatabase(this);
-				SQLiteDatabase db = webRadioDatabase.getWritableDatabase();
-				ContentValues values = new ContentValues();
-				values.put("url", url);
-				values.put("name", name);
-				try {
-					db.insertOrThrow("WebRadio", null, values);
-				} catch(Exception e) {
-				} finally {
-					db.close();
-				}
+				Radio.addRadio(new Radio(url, name));
+			}
+			
+			NodeList podcasts = doc.getElementsByTagName("podcast");
+			for(int i=0; i<podcasts.getLength(); i++) {
+				Element podcast = (Element)podcasts.item(i);
+				String url = podcast.getAttribute("url");
+				String name = podcast.getAttribute("name");
+				byte[] image = Base64.decode(podcast.getAttribute("image"), Base64.DEFAULT);
+				if(url==null || url.equals("")) continue;
+				if(name==null || name.equals("")) name = url;
+				Podcast.addPodcast(this, url, name, image);
 			}
 			
 			Toast.makeText(this, R.string.importSuccess, Toast.LENGTH_LONG).show();
@@ -205,46 +210,52 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 		}
 	}
 	
-	private void exportRadio() {
-		AlertDialog dialog = new AlertDialog.Builder(this).create();
-		dialog.setTitle(R.string.exportRadio);
-		dialog.setMessage(getResources().getString(R.string.exportConfirm, DEFAULT_RADIO_FILENAME));
-		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+	private void doExport() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.export);
+		builder.setMessage(getResources().getString(R.string.exportConfirm, DEFAULT_IMPORTEXPORT_FILENAME));
+		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
-				doExportRadio();
+				doExport(DEFAULT_IMPORTEXPORT_FILENAME);
 			}
 		});
-		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialog, int which) {}});
-		dialog.show();
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
 	}
 	
-	private void doExportRadio() {
-		WebRadioDatabase webRadioDatabase = new WebRadioDatabase(this);
-		SQLiteDatabase db = webRadioDatabase.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT url, name FROM WebRadio ORDER BY NAME", null);
-        ArrayList<String> urls = new ArrayList<String>();
-    	ArrayList<String> names = new ArrayList<String>();
-
-        while (cursor.moveToNext()) {
-        	urls.add(cursor.getString(0));
-        	names.add(cursor.getString(1));
-        }
-        db.close();
+	private void doExport(String filename) {
+		ArrayList<Radio> radios = Radio.getRadios();
+		ArrayList<Podcast> podcasts = Podcast.getPodcasts();
 		
-		File file = new File(DEFAULT_RADIO_FILENAME);
+		File file = new File(filename);
 		try {
 			FileOutputStream fos = new FileOutputStream(file);
 			XmlSerializer serializer = Xml.newSerializer();
 			serializer.setOutput(fos, "UTF-8");
 	        serializer.startDocument(null, Boolean.valueOf(true));
-	        serializer.startTag(null, "streams");
-	        for(int i=0; i<urls.size(); i++) {
-	        	serializer.startTag(null, "stream");
-	        	serializer.attribute(null, "url", urls.get(i));
-	        	serializer.attribute(null, "name", names.get(i));
-		        serializer.endTag(null, "stream");
+	        serializer.startTag(null, "info");
+	        
+	        serializer.startTag(null, "radios");
+	        for(Radio radio : radios) {
+	        	serializer.startTag(null, "radio");
+	        	serializer.attribute(null, "url", radio.getUrl());
+	        	serializer.attribute(null, "name", radio.getName());
+		        serializer.endTag(null, "radio");
 	        }
-	        serializer.endTag(null, "streams");
+	        serializer.endTag(null, "radios");
+	        
+	        
+	        serializer.startTag(null, "podcasts");
+	        for(Podcast podcast : podcasts) {
+	        	serializer.startTag(null, "podcast");
+	        	serializer.attribute(null, "url", podcast.getUrl());
+	        	serializer.attribute(null, "name", podcast.getName());
+	        	serializer.attribute(null, "image", Base64.encodeToString(podcast.getImageBytes(), Base64.DEFAULT));
+	        	serializer.endTag(null, "podcast");
+	        }
+	        serializer.endTag(null, "podcasts");
+	        
+	        serializer.endTag(null, "info");
 	        serializer.endDocument();
 	        serializer.flush();
 			fos.close();

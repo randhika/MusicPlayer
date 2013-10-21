@@ -19,27 +19,42 @@ package com.andreadec.musicplayer.adapters;
 import java.util.*;
 import android.view.*;
 import android.widget.*;
+
 import com.andreadec.musicplayer.*;
 
-public class SearchResultsArrayAdapter extends ArrayAdapter<Song> {
-	private final SearchActivity searchActivity;
-	private final ArrayList<Song> songs;
+public class SearchResultsArrayAdapter extends ArrayAdapter<BrowserSong> {
+	private final ArrayList<BrowserSong> songs;
+	private LayoutInflater inflater;
  
-	public SearchResultsArrayAdapter(SearchActivity searchActivity, ArrayList<Song> songs) {
+	public SearchResultsArrayAdapter(SearchActivity searchActivity, ArrayList<BrowserSong> songs) {
 		super(searchActivity, R.layout.song_item, songs);
-		this.searchActivity = searchActivity;
 		this.songs = songs;
+		inflater = searchActivity.getLayoutInflater();
 	}
 
 	@Override
 	public View getView(int position, View view, ViewGroup parent) {
-		Song song = songs.get(position);
-		LayoutInflater inflater = searchActivity.getLayoutInflater();
-		view = inflater.inflate(R.layout.song_item, parent, false);
-		TextView textViewSongItemTitle = (TextView)view.findViewById(R.id.textViewSongItemTitle);
-		TextView textViewSongItemArtist = (TextView)view.findViewById(R.id.textViewSongItemArtist);
-		textViewSongItemTitle.setText(song.getTitle());
-		textViewSongItemArtist.setText(song.getArtist());
+		BrowserSong song = songs.get(position);
+		ViewHolder viewHolder;
+		
+		if(view==null) {
+			viewHolder = new ViewHolder();
+			view = inflater.inflate(R.layout.song_item, parent, false);
+			viewHolder.title = (TextView)view.findViewById(R.id.textViewSongItemTitle);
+			viewHolder.artist = (TextView)view.findViewById(R.id.textViewSongItemArtist);
+		} else {
+			viewHolder = (ViewHolder)view.getTag();
+		}
+		viewHolder.title.setText(song.getTitle());
+		viewHolder.artist.setText(song.getArtist());
+		
+		view.setTag(viewHolder);
 		return view;
+	}
+	
+	private class ViewHolder {
+		public TextView artist;
+		public TextView title;
+		//public ImageView image;
 	}
 }

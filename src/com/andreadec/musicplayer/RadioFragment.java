@@ -16,44 +16,29 @@
 
 package com.andreadec.musicplayer;
 
-import java.util.ArrayList;
+import java.util.*;
 
-import android.app.AlertDialog;
-import android.content.ContentValues;
-import android.content.DialogInterface;
-import android.database.*;
-import android.database.sqlite.*;
+import android.app.*;
+import android.content.*;
 import android.os.*;
-import android.support.v4.app.*;
 import android.view.*;
 import android.view.ContextMenu.*;
 import android.widget.AdapterView.*;
 import android.widget.*;
 
 import com.andreadec.musicplayer.adapters.*;
-import com.andreadec.musicplayer.database.*;
 
-public class RadioFragment extends Fragment implements OnItemClickListener {
-	private ListView listViewRadio;
-	private WebRadioDatabase webRadioDatabase;
-	/*private ArrayList<String> urls;
-	private ArrayList<String> names;*/
+public class RadioFragment extends MusicPlayerFragment implements OnItemClickListener {
+	private ListView listViewRadios;
 	private RadioArrayAdapter adapter;
-	
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		webRadioDatabase = new WebRadioDatabase(this.getActivity());
-	}
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		if (container == null) return null;
 		View view = inflater.inflate(R.layout.layout_webradio, container, false);
-		listViewRadio = (ListView)view.findViewById(R.id.listViewRadio);
-		listViewRadio.setOnItemClickListener(this);
-		listViewRadio.setEmptyView(view.findViewById(R.id.listViewRadioEmpty));
-		registerForContextMenu(listViewRadio);
+		listViewRadios = (ListView)view.findViewById(R.id.listViewRadio);
+		listViewRadios.setOnItemClickListener(this);
+		registerForContextMenu(listViewRadios);
 		updateListView();
 		return view;
 	}
@@ -62,73 +47,74 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 	public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, view, menuInfo);
 		int position = ((AdapterContextMenuInfo)menuInfo).position;
+		if(position==0) return;
 		MenuInflater inflater = getActivity().getMenuInflater();
 		inflater.inflate(R.menu.contextmenu_editdelete, menu);
-		menu.setHeaderTitle(adapter.getItem(position).getTitle());
+		menu.setHeaderTitle(((Radio)(adapter.getItem(position))).getTitle());
 	}
 	
-	public boolean onContextItemSelectedRadio(MenuItem item) {
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
 		int position = ((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position;
 		switch (item.getItemId()) {
 		case R.id.menu_edit:
-			editRadio(adapter.getItem(position));
+			editRadio((Radio)adapter.getItem(position));
 			return true;
 		case R.id.menu_delete:
-			deleteRadio(adapter.getItem(position));
+			deleteRadio((Radio)adapter.getItem(position));
 			return true;
 		}
 		return false;
 	}
 	
-	private void updateListView() {
-		SQLiteDatabase db = webRadioDatabase.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT url, name FROM WebRadio ORDER BY NAME", null);
-        ArrayList<Song> radios = new ArrayList<Song>();
-        while (cursor.moveToNext()) {
-        	Song radio = new Song(cursor.getString(0));
-        	radio.setTitle(cursor.getString(1));
-        	radios.add(radio);
-        }
-        db.close();
-        adapter = new RadioArrayAdapter(getActivity(), radios);
-        listViewRadio.setAdapter(adapter);
+	@Override
+	public void updateListView() {
+		ArrayList<Object> items = new ArrayList<Object>();
+		items.add(new Action(Action.ACTION_NEW, getResources().getString(R.string.addRadio)));
+		items.addAll(Radio.getRadios());
+		MainActivity activity = (MainActivity)getActivity();
+		Radio playingRadio = null;
+		if(activity.getCurrentPlayingItem() instanceof Radio) playingRadio = (Radio)activity.getCurrentPlayingItem();
+	    adapter = new RadioArrayAdapter((MainActivity)getActivity(), items, playingRadio);
+	    listViewRadios.setAdapter(adapter);
 	}
 	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		((MainActivity)getActivity()).playRadio(adapter.getItem(position));
+		Object item = adapter.getItem(position);
+		if(item instanceof Action) {
+			editRadio(null);
+		} else if(item instanceof Radio) {
+			((MainActivity)getActivity()).playRadio((Radio)item);
+		}
 	}
 	
-	private void deleteRadio(final Song radio) {
-		AlertDialog dialog = new AlertDialog.Builder(getActivity()).create();
-		dialog.setTitle(R.string.delete);
-		dialog.setMessage(getResources().getString(R.string.deleteRadioConfirm));
-		dialog.setButton(AlertDialog.BUTTON_POSITIVE, getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {
+	private void deleteRadio(final Radio radio) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.delete);
+		builder.setMessage(getResources().getString(R.string.deleteRadioConfirm));
+		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 		      public void onClick(DialogInterface dialog, int which) {
-		    	  SQLiteDatabase db = webRadioDatabase.getWritableDatabase();
-		    	  db.delete("WebRadio", "url = '" + radio.getUri() + "'", null);
-		    	  db.close();
+		    	  Radio.deleteRadio(radio);
 		    	  updateListView();
 		      }
 		});
-		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
-		      public void onClick(DialogInterface dialog, int which) {}
-		});
-		dialog.show();
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
 	}
 	
-	private void editRadio(final Song oldSong) {
+	private void editRadio(final Radio oldRadio) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		int title = oldSong==null ? R.string.addRadio : R.string.edit;
+		int title = oldRadio==null ? R.string.addRadio : R.string.edit;
 		builder.setTitle(getResources().getString(title));
 		final View view = getActivity().getLayoutInflater().inflate(R.layout.layout_editwebradio, null);
 		builder.setView(view);
 		
 		final EditText editTextUrl = (EditText)view.findViewById(R.id.editTextUrl);
 		final EditText editTextName = (EditText)view.findViewById(R.id.editTextName);
-		if(oldSong!=null) {
-			editTextUrl.setText(oldSong.getUri());
-			editTextName.setText(oldSong.getTitle());
+		if(oldRadio!=null) {
+			editTextUrl.setText(oldRadio.getUrl());
+			editTextName.setText(oldRadio.getName());
 		}
 		
 		builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -141,23 +127,13 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 				}
 	        	if(name.equals("")) name = url;
 	        	
-	        	if(oldSong!=null) {
-		        	SQLiteDatabase db = webRadioDatabase.getWritableDatabase();
-		        	db.delete("WebRadio", "url = '" + oldSong.getUri() + "'", null);
-		        	db.close();
+	        	if(oldRadio!=null) {
+	        		Radio.deleteRadio(oldRadio);
 	        	}
-
-				SQLiteDatabase db = webRadioDatabase.getWritableDatabase();
-				ContentValues values = new ContentValues();
-				values.put("url", url);
-				values.put("name", name);
-				try {
-					db.insertOrThrow("WebRadio", null, values);
-				} catch(Exception e) {
-				} finally {
-					db.close();
-					updateListView();
-				}
+				
+	        	Radio newRadio = new Radio(url, name);
+	        	Radio.addRadio(newRadio);
+				updateListView();
 			}
 		});
 		
@@ -169,5 +145,30 @@ public class RadioFragment extends Fragment implements OnItemClickListener {
 	
 	public void newRadio() {
 		editRadio(null);
+	}
+
+	@Override
+	public boolean onBackPressed() {
+		return false;
+	}
+
+	@Override
+	public void gotoPlayingItemPosition(PlayableItem playingItem) {
+		Radio playingRadio = (Radio)playingItem;
+		for(int i=0; i<adapter.getCount(); i++) {
+			Object item = adapter.getItem(i);
+			if(item instanceof PodcastItem) {
+				if(item.equals(playingRadio)) {
+					final int position = i;
+					listViewRadios.post(new Runnable() {
+						@Override
+						public void run() {
+							listViewRadios.smoothScrollToPosition(position);
+						}
+					});
+					break;
+				}
+			}
+		}
 	}
 }

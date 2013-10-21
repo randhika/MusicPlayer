@@ -16,15 +16,15 @@
 
 package com.andreadec.musicplayer.database;
 
-import android.content.Context;
+import com.andreadec.musicplayer.MusicPlayerApplication;
 import android.database.sqlite.*;
 
 public class PlaylistsDatabase extends SQLiteOpenHelper {
 	private static final String DB_NAME = "Playlists";
-	private static final int DB_VERSION = 2;
+	private static final int DB_VERSION = 3;
 	
-	public PlaylistsDatabase(Context context) {
-		super(context, DB_NAME, null, DB_VERSION);
+	public PlaylistsDatabase() {
+		super(MusicPlayerApplication.getContext(), DB_NAME, null, DB_VERSION);
 	}
 	
 	@Override
@@ -35,9 +35,17 @@ public class PlaylistsDatabase extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		if(oldVersion==1 && newVersion==2) {
-			db.execSQL("ALTER TABLE Playlists ADD position INTEGER DEFAULT 0");
-			db.execSQL("ALTER TABLE SongsInPlaylist ADD position INTEGER DEFAULT 0");
-		}
+		if(oldVersion==1 && newVersion==2) from1to2(db);
+		if(oldVersion==2 && newVersion==3) from2to3(db);
+		if(oldVersion==1 && newVersion==3) {from1to2(db);from2to3(db);}
+	}
+	
+	private void from1to2(SQLiteDatabase db) {
+		db.execSQL("ALTER TABLE Playlists ADD position INTEGER DEFAULT 0");
+		db.execSQL("ALTER TABLE SongsInPlaylist ADD position INTEGER DEFAULT 0");
+	}
+	
+	private void from2to3(SQLiteDatabase db) {
+		db.execSQL("ALTER TABLE SongsInPlaylist ADD hasImage INTEGER DEFAULT 1");
 	}
 }
