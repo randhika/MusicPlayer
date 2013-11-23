@@ -30,7 +30,7 @@ public class PlaylistsDatabase extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL("CREATE TABLE Playlists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, position INTEGER DEFAULT 0)");
-		db.execSQL("CREATE TABLE SongsInPlaylist (idSong INTEGER, idPlaylist INTEGER, uri TEXT, artist TEXT, title TEXT, position INTEGER DEFAULT 0, PRIMARY KEY(idSong), FOREIGN KEY(idPlaylist) REFERENCES Playlists (id))");
+		db.execSQL("CREATE TABLE SongsInPlaylist (idSong INTEGER, idPlaylist INTEGER, uri TEXT, artist TEXT, title TEXT, position INTEGER DEFAULT 0, hasImage INTEGER DEFAULT 1, PRIMARY KEY(idSong), FOREIGN KEY(idPlaylist) REFERENCES Playlists (id))");
 	}
 
 	@Override

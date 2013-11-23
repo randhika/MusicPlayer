@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.andreadec.musicplayer"
-    android:versionCode="6"
-    android:versionName="2.0-RC1"
+    android:versionCode="7"
+    android:versionName="2.0-RC2"
     android:installLocation="auto" >
 
     <uses-sdk
