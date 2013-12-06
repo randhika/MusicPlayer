@@ -29,6 +29,7 @@ import android.os.*;
 import android.preference.*;
 import android.support.v4.app.*;
 import android.telephony.*;
+import android.view.KeyEvent;
 
 public class MusicService extends Service implements OnCompletionListener {
 	private final IBinder musicBinder = new MusicBinder();	
@@ -54,7 +55,8 @@ public class MusicService extends Service implements OnCompletionListener {
 	
 	private TelephonyManager telephonyManager;
 	private MusicPhoneStateListener phoneStateListener;
-	
+	private AudioManager audioManager;
+	private ComponentName mediaButtonReceiverComponent;
 	private BroadcastReceiver broadcastReceiver;
 	
 	private ShakeListener shakeListener;
@@ -68,6 +70,10 @@ public class MusicService extends Service implements OnCompletionListener {
 		telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		phoneStateListener = new MusicPhoneStateListener();
 		notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+		
+		// Inizialize the audio manager
+		audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		mediaButtonReceiverComponent = new ComponentName(getPackageName(), MediaButtonReceiver.class.getName());
 		
 		// Initialize pending intents
 		previousPendingIntent = PendingIntent.getBroadcast(this, 0, new Intent("com.andreadec.musicplayer.previous"), 0);
@@ -116,6 +122,8 @@ public class MusicService extends Service implements OnCompletionListener {
 		updateNotificationMessage();
 		telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE); // Start listen for telephony events
 		
+		audioManager.registerMediaButtonEventReceiver(mediaButtonReceiverComponent);
+		
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction("com.andreadec.musicplayer.previous");
 		intentFilter.addAction("com.andreadec.musicplayer.playpause");
@@ -124,13 +132,14 @@ public class MusicService extends Service implements OnCompletionListener {
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-            	if(intent.getAction().equals("com.andreadec.musicplayer.previous")) {
+            	String action = intent.getAction();
+            	if(action.equals("com.andreadec.musicplayer.previous")) {
             		previousItem();
-            	} else if(intent.getAction().equals("com.andreadec.musicplayer.playpause")) {
+            	} else if(action.equals("com.andreadec.musicplayer.playpause")) {
             		playPause();
-            	} else if(intent.getAction().equals("com.andreadec.musicplayer.next")) {
+            	} else if(action.equals("com.andreadec.musicplayer.next")) {
             		nextItem();
-            	} else if(intent.getAction().equals(AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
+            	} else if(action.equals(AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
             		if(preferences.getBoolean(Constants.PREFERENCE_STOPPLAYINGWHENHEADSETDISCONNECTED, Constants.DEFAULT_STOPPLAYINGWHENHEADSETDISCONNECTED)) {
 	            		pause();
             		}
@@ -216,6 +225,7 @@ public class MusicService extends Service implements OnCompletionListener {
 		editor.putString(Constants.PREFERENCE_LASTDIRECTORY, ((MusicPlayerApplication)getApplication()).getCurrentDirectory().getDirectory().getAbsolutePath());
 		editor.commit();
 		
+		audioManager.unregisterMediaButtonEventReceiver(mediaButtonReceiverComponent);
 		shakeListener.disable();
 		mediaPlayer.release();
 		stopForeground(true);
@@ -509,5 +519,27 @@ public class MusicService extends Service implements OnCompletionListener {
 	            	break;
 	        }
 	    }
+	}
+	
+	public static class MediaButtonReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			System.out.println(intent.getAction());
+			KeyEvent event = (KeyEvent)intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+			if(event.getAction()!=KeyEvent.ACTION_DOWN) return;
+			switch(event.getKeyCode()) {
+			case KeyEvent.KEYCODE_MEDIA_PLAY:
+			case KeyEvent.KEYCODE_MEDIA_PAUSE:
+			case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+				context.sendBroadcast(new Intent("com.andreadec.musicplayer.playpause"));
+				return;
+			case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+				context.sendBroadcast(new Intent("com.andreadec.musicplayer.previous"));
+				return;
+			case KeyEvent.KEYCODE_MEDIA_NEXT:
+				context.sendBroadcast(new Intent("com.andreadec.musicplayer.next"));
+				return;
+			}
+		}
 	}
 }
