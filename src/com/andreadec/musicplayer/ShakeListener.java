@@ -99,7 +99,7 @@ public class ShakeListener implements SensorEventListener {
 				} else if(shakeAction.equals("next")) {
 					musicService.nextItem();
 				} else if(shakeAction.equals("previous")) {
-					musicService.previousItem();
+					musicService.previousItem(true);
 				}
 			    lastShake = currTime;
 			}

@@ -463,7 +463,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		} else if(view.equals(imageButtonNext)) {
 			musicService.nextItem();
 		} else if(view.equals(imageButtonPrevious))  {
-			musicService.previousItem();
+			musicService.previousItem(false);
 		} else if(view.equals(textViewTime)) {
 			showRemainingTime = !showRemainingTime;
 		} else if(view.equals(imageButtonShuffle)) {

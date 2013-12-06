@@ -126,6 +126,7 @@ public class MusicService extends Service implements OnCompletionListener {
 		
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction("com.andreadec.musicplayer.previous");
+		intentFilter.addAction("com.andreadec.musicplayer.previousNoRestart");
 		intentFilter.addAction("com.andreadec.musicplayer.playpause");
 		intentFilter.addAction("com.andreadec.musicplayer.next");
 		intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
@@ -134,7 +135,9 @@ public class MusicService extends Service implements OnCompletionListener {
             public void onReceive(Context context, Intent intent) {
             	String action = intent.getAction();
             	if(action.equals("com.andreadec.musicplayer.previous")) {
-            		previousItem();
+            		previousItem(false);
+            	} else if(action.equals("com.andreadec.musicplayer.previousNoRestart")) {
+            		previousItem(true);
             	} else if(action.equals("com.andreadec.musicplayer.playpause")) {
             		playPause();
             	} else if(action.equals("com.andreadec.musicplayer.next")) {
@@ -390,10 +393,10 @@ public class MusicService extends Service implements OnCompletionListener {
 	}
 	
 	/* Plays the previous song */
-	public void previousItem() {
+	public void previousItem(boolean noRestart) {
 		if(currentPlayingItem==null) return;
 		
-		if(isPlaying() && getCurrentPosition()>2000) {
+		if(isPlaying() && !noRestart && getCurrentPosition()>2000) {
 			playItem(currentPlayingItem);
 			return;
 		}
@@ -534,7 +537,7 @@ public class MusicService extends Service implements OnCompletionListener {
 				context.sendBroadcast(new Intent("com.andreadec.musicplayer.playpause"));
 				return;
 			case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-				context.sendBroadcast(new Intent("com.andreadec.musicplayer.previous"));
+				context.sendBroadcast(new Intent("com.andreadec.musicplayer.previousNoRestart"));
 				return;
 			case KeyEvent.KEYCODE_MEDIA_NEXT:
 				context.sendBroadcast(new Intent("com.andreadec.musicplayer.next"));
