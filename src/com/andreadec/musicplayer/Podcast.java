@@ -158,6 +158,7 @@ public class Podcast {
 			for(PodcastItem item : podcast.getPodcastItems()) {
 				if(item.getStatus()==PodcastItem.STATUS_DOWNLOADED) {
 					item.deleteDownloadedFile();
+					item.setStatus(PodcastItem.STATUS_NEW);
 				}
 			}
 		}
