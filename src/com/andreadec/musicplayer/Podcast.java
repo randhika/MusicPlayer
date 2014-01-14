@@ -63,9 +63,7 @@ public class Podcast {
 		db.close();
 	}
 	
-	public void addItem(PodcastItem item) {
-		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
-		SQLiteDatabase db = podcastsDatabase.getWritableDatabase();
+	public void addItem(SQLiteDatabase db, PodcastItem item) {
 		ContentValues values = new ContentValues();
 		values.put("idPodcast", id);
 		values.put("idItem", item.getId());
@@ -77,10 +75,7 @@ public class Podcast {
 		values.put("type", item.getType());
 		try {
 			db.insertOrThrow("ItemsInPodcast", null, values);
-		} catch(Exception e) {
-		} finally {
-			db.close();
-		}
+		} catch(Exception e) {}
 	}
 	
 	public void deleteItem(PodcastItem item) {
@@ -169,10 +164,17 @@ public class Podcast {
 		boolean ok = parser.parse(url);
 		if(!ok) return false;
 		ArrayList<PodcastItem> items = parser.getPodcastItems();
+		
+		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
+		SQLiteDatabase db = podcastsDatabase.getWritableDatabase();
+		
 		for(PodcastItem item : items) {
 			item.setPodcast(this);
-			addItem(item);
+			addItem(db, item);
 		}
+		
+		db.close();
+		
 		loadItemsFromDatabase();
 		return true;
 	}
