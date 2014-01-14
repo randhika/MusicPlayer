@@ -647,7 +647,14 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		@Override
 		protected void onPreExecute() {
 	        progressDialog.setIndeterminate(true);
-	        progressDialog.setCancelable(false);
+	        progressDialog.setCancelable(true);
+	        progressDialog.setOnCancelListener(new OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface dialog) {
+					cancel(true);
+				}
+			});
+	        progressDialog.setCanceledOnTouchOutside(false);
 	        progressDialog.setMessage(MainActivity.this.getString(R.string.loadingRadio, radio.getTitle()));
 			progressDialog.show();
 			startPollingThread = false;
@@ -657,6 +664,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		protected Boolean doInBackground(Void... params) {
 			return musicService.playItem(radio);
 		}
+		@Override
+	    protected void onCancelled() {
+			musicService.playItem(null);
+	    }
 		@Override
 		protected void onPostExecute(final Boolean success) {
 			updatePlayingItem();
