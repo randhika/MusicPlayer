@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Andrea De Cesare
+ * Copyright 2012-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.andreadec.musicplayer;
 
 import java.io.*;
 import java.util.*;
+
 import android.app.*;
 import android.content.*;
 import android.os.*;
@@ -45,7 +46,6 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		if (container == null) return null;
 		View view = inflater.inflate(R.layout.layout_browser, container, false);
 		listViewBrowser = (ListView)view.findViewById(R.id.listViewBrowser);
 		listViewBrowser.setOnItemClickListener(this);
@@ -135,7 +135,8 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
     	ArrayList<File> browsingSubdirs = currentDirectory.getSubdirs();
         ArrayList<BrowserSong> browsingSongs = currentDirectory.getSongs();
         ArrayList<Object> items = new ArrayList<Object>();
-        items.add(new Action(Action.ACTION_GO_BACK, currentDirectory.getDirectory().getAbsolutePath())); // Add the button to come back to the parent directory
+        //items.add(new Action(Action.ACTION_GO_BACK, currentDirectory.getDirectory().getAbsolutePath())); // Add the button to come back to the parent directory
+        items.add(new Action(Action.ACTION_GO_BACK, getCurrentDirectoryName(currentDirectory)));
         items.addAll(browsingSubdirs);
         items.addAll(browsingSongs);
         BrowserSong playingSong = null;
@@ -178,6 +179,21 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 					break;
 				}
 			}
+		}
+	}
+	
+	private String getCurrentDirectoryName(BrowserDirectory currentDirectory) {
+		String currentDirectoryName = currentDirectory.getDirectory().getAbsolutePath();
+		if(!preferences.getBoolean(Constants.PREFERENCE_SHOWRELATIVEPATHUNDERBASEDIRECTORY, Constants.DEFAULT_SHOWRELATIVEPATHUNDERBASEDIRECTORY)) {
+			return currentDirectoryName;
+		}
+		
+		String baseDirectory = preferences.getString(Constants.PREFERENCE_BASEFOLDER, Constants.DEFAULT_BASEFOLDER);
+		
+		if(baseDirectory!=null && currentDirectoryName.startsWith(baseDirectory) && !currentDirectoryName.equals(baseDirectory)) {
+			return currentDirectoryName.substring(baseDirectory.length()+1); // +1 removes initial "/"
+		} else {
+			return currentDirectoryName;
 		}
 	}
 

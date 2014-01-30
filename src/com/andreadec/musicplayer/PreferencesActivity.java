@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Andrea De Cesare
+ * Copyright 2012-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,12 @@
 
 package com.andreadec.musicplayer;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xmlpull.v1.XmlSerializer;
-
-import android.annotation.SuppressLint;
+import java.io.*;
+import java.util.*;
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
+import org.xmlpull.v1.*;
+import android.annotation.*;
 import android.app.*;
 import android.content.*;
 import android.database.sqlite.*;
@@ -41,11 +34,14 @@ import android.widget.*;
 
 import com.andreadec.musicplayer.database.*;
 
-public class PreferencesActivity extends PreferenceActivity implements OnPreferenceClickListener {
+public class PreferencesActivity extends PreferenceActivity implements OnPreferenceClickListener, OnPreferenceChangeListener {
 	private final static String DEFAULT_IMPORTEXPORT_FILENAME = Environment.getExternalStorageDirectory() + "/musicplayer_info.xml";
 	
 	private SharedPreferences preferences;
 	private Preference preferenceClearCache, preferenceIndexBaseFolder, preferenceAbout, preferenceImport, preferenceExport;
+	private Preference preferenceDarkTheme, preferenceTranslucentStatusBar, preferenceTranslucentNavigationBar;
+	
+	private boolean needsRestart;
 	
 	@SuppressWarnings("deprecation")
 	@SuppressLint("NewApi")
@@ -59,6 +55,12 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 		}
     	
     	preferences = PreferenceManager.getDefaultSharedPreferences(this);
+    	
+    	// Translucent system bars are only available on Android 4.4+
+    	if(Build.VERSION.SDK_INT < 19) {
+    		getPreferenceScreen().removePreference(findPreference(Constants.PREFERENCE_TRANSLUCENTSTATUSBAR));
+    		getPreferenceScreen().removePreference(findPreference(Constants.PREFERENCE_TRANSLUCENTNAVIGATIONBAR));
+    	}
     	
     	preferenceClearCache = findPreference("clearCache");
     	preferenceIndexBaseFolder = findPreference("indexBaseFolder");
@@ -80,15 +82,56 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
     		EditTextPreference preferencePodcastsDirectory = (EditTextPreference)findPreference("podcastsDirectory");
     		preferencePodcastsDirectory.setText(Podcast.DEFAULT_PODCASTS_PATH);
     	}
+    	
+    	
+    	preferenceDarkTheme = findPreference("darkTheme");
+    	preferenceTranslucentStatusBar = findPreference("translucentStatusBar");
+    	preferenceTranslucentNavigationBar = findPreference("translucentNavigationBar");
+    	preferenceDarkTheme.setOnPreferenceChangeListener(this);
+    	preferenceTranslucentStatusBar.setOnPreferenceChangeListener(this);
+    	preferenceTranslucentNavigationBar.setOnPreferenceChangeListener(this);
+	}
+	
+	@Override
+	public void onBackPressed() {
+		close();
+	}
+	
+	@SuppressLint("InlinedApi")
+	private void close() {
+		final Intent intent = new Intent(this, MainActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		if(needsRestart) {
+			if(Build.VERSION.SDK_INT>=11) {
+				AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+				dialog.setTitle(R.string.restartNeeded);
+				dialog.setMessage(R.string.restartNeededConfirm);
+				dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+					@Override public void onClick(DialogInterface dialog, int which) {
+						intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+						startActivity(intent);
+					}
+				});
+				dialog.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+					@Override public void onClick(DialogInterface dialog, int which) {
+						startActivity(intent);
+					}
+				});
+				dialog.show();
+			} else {
+				Utils.showMessageDialog(this, R.string.restartNeeded, R.string.restartNeededMessage);
+				startActivity(intent);
+			}
+		} else {
+			startActivity(intent);
+		}
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			Intent intent = new Intent(this, MainActivity.class);
-			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
+			close();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -265,5 +308,13 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 			Toast.makeText(this, R.string.exportError, Toast.LENGTH_LONG).show();
 			Log.e("WebRadioAcitivity", "doExport", e);
 		}
+	}
+
+	@Override
+	public boolean onPreferenceChange(Preference preference, Object newValue) {
+		if(preference.equals(preferenceDarkTheme) || preference.equals(preferenceTranslucentNavigationBar) || preference.equals(preferenceTranslucentStatusBar)) {
+			needsRestart = true;
+		}
+		return true;
 	}
 }

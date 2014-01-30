@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Andrea De Cesare
+ * Copyright 2012-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import com.andreadec.musicplayer.adapters.*;
 import com.mobeta.android.dslv.*;
 import com.mobeta.android.dslv.DragSortListView.*;
 
-public class PlaylistFragment extends MusicPlayerFragment implements OnItemClickListener, DropListener {
+public class PlaylistFragment extends MusicPlayerFragment implements OnItemClickListener, DropListener, RemoveListener {
 	private Playlist currentPlaylist = null;
 	private DragSortListView listViewPlaylist;
 	private PlaylistArrayAdapter playlistArrayAdapter;
@@ -42,6 +42,7 @@ public class PlaylistFragment extends MusicPlayerFragment implements OnItemClick
 		listViewPlaylist = (DragSortListView)view.findViewById(R.id.listViewPlaylist);
 		listViewPlaylist.setOnItemClickListener(this);
 		listViewPlaylist.setDropListener(this);
+		listViewPlaylist.setRemoveListener(this);
 		registerForContextMenu(listViewPlaylist);
 		updateListView();
 		return view;
@@ -105,6 +106,7 @@ public class PlaylistFragment extends MusicPlayerFragment implements OnItemClick
 		builder.setView(view);
 		
 		final EditText editTextName = (EditText)view.findViewById(R.id.editTextPlaylistName);
+		editTextName.setSingleLine();
 		if(playlist!=null) editTextName.setText(playlist.getName());
 		
 		builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -250,5 +252,17 @@ public class PlaylistFragment extends MusicPlayerFragment implements OnItemClick
 		PlaylistSong song = (PlaylistSong)playingItem;
 		showPlaylist(song.getPlaylist());
 		scrollToSong(song);
+	}
+
+	/* Fling-to-remove listener */
+	@Override
+	public void remove(int which) {
+		Object item = playlistArrayAdapter.getItem(which);
+		if(item instanceof Playlist) {
+			deletePlaylist((Playlist)item);
+		} else if(item instanceof PlaylistSong) {
+			deleteSongFromPlaylist((PlaylistSong)item);
+		}
+		playlistArrayAdapter.notifyDataSetChanged();
 	}
 }

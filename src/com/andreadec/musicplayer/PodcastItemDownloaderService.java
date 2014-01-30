@@ -24,7 +24,7 @@ import android.content.*;
 import android.support.v4.app.*;
 
 public class PodcastItemDownloaderService extends IntentService {
-	private final static int UPDATE_INTERVAL = 500000;
+	private final static int NOTIFICATION_INTERVAL = 1000; // Milliseconds
 	private final static String STOP_DOWNLOAD_INTENT = "com.andreadec.musicplayer.stopdownload";
 	private NotificationManager notificationManager;
 	private NotificationCompat.Builder notificationBuilder;
@@ -32,6 +32,11 @@ public class PodcastItemDownloaderService extends IntentService {
 	
 	private InputStream input;
 	private FileOutputStream output;
+	
+	private int totalRead;
+	private int length;
+	private String lengthString;
+	private boolean downloadInProgress = false;
 	
 	public PodcastItemDownloaderService() {
 		super("PodcastItemDownloader");
@@ -57,9 +62,7 @@ public class PodcastItemDownloaderService extends IntentService {
             @Override
             public void onReceive(Context context, Intent intent) {
             	if(intent.getAction().equals(STOP_DOWNLOAD_INTENT)) {
-            		try {
-            			input.close();
-            		} catch(Exception e) {}
+            		downloadInProgress = false;
             	}
             }
         };
@@ -77,37 +80,40 @@ public class PodcastItemDownloaderService extends IntentService {
 		String filename = podcastsDirectory+"/"+UUID.randomUUID().toString();
 		Intent intentCompleted = new Intent("com.andreadec.musicplayer.podcastdownloadcompleted");
 		
+		HttpURLConnection httpConnection = null;
+		
 		try {
 			if(type.equalsIgnoreCase("audio/mpeg") || type.equalsIgnoreCase("audio/.mp3")) filename+=".mp3";
 			else if(type.equalsIgnoreCase("audio/ogg")) filename+=".ogg";
 			else throw new Exception("Unsupported format");
 			
 			URL url = new URL(intent.getStringExtra("url"));
-	        HttpURLConnection httpConnection = (HttpURLConnection)url.openConnection();
+	        httpConnection = (HttpURLConnection)url.openConnection();
 	        if(httpConnection.getResponseCode()!=200) throw new Exception("Failed to connect");
-	        int length = httpConnection.getContentLength();
-	        String lengthString = Utils.formatFileSize(length);
+	        length = httpConnection.getContentLength();
+	        lengthString = Utils.formatFileSize(length);
 	        input = httpConnection.getInputStream();
 	        output = new FileOutputStream(filename);
 	        
 	        byte[] buffer = new byte[1024];
 	        int read = 0;
-	        int totalRead = 0;
-	        int nextNotification = UPDATE_INTERVAL;
+	        totalRead = 0;
+	        downloadInProgress = true;
+	        new NotificationThread().start();
 	        while((read = input.read(buffer))>0) {
+	        	if(!downloadInProgress) {
+	        		input.close();
+	        		throw new Exception();
+	        	}
 	        	output.write(buffer, 0, read);
 	        	totalRead += read;
-	        	if(totalRead>nextNotification) {
-	        		String progress = Utils.formatFileSize(totalRead)+"/"+lengthString;
-	        		notificationBuilder.setContentText(progress);
-		        	notificationBuilder.setProgress(length, totalRead, false);
-		        	notificationManager.notify(Constants.NOTIFICATION_PODCAST_ITEM_DOWNLOAD_ONGOING, notificationBuilder.build());
-		        	nextNotification = totalRead+UPDATE_INTERVAL;
-	        	}
 	        }
 	        
 	        intentCompleted.putExtra("success", true);
 			PodcastItem.setDownloadedFile(idItem, filename);
+			
+			output.flush();
+		    output.close();
 		} catch(Exception e) {
 			new File(filename).delete();
         	PodcastItem.setDownloadCanceled(idItem);
@@ -116,14 +122,11 @@ public class PodcastItemDownloaderService extends IntentService {
 			showErrorNotification(e.getMessage());
 		} finally {
 			try {
-				output.flush();
-		        output.close();
-			} catch(Exception e) {}
-			try {
-				input.close();
+				httpConnection.disconnect();
 			} catch(Exception e) {}
 		}
 		
+		downloadInProgress = false;
 		unregisterReceiver(broadcastReceiver);
 		
 		sendBroadcast(intentCompleted);
@@ -136,5 +139,17 @@ public class PodcastItemDownloaderService extends IntentService {
 		errorNotification.setContentTitle(getResources().getString(R.string.error));
 		errorNotification.setContentText(getResources().getString(R.string.podcastDownloadError)+": "+msg);
 		notificationManager.notify(Constants.NOTIFICATION_PODCAST_ITEM_DOWNLOAD_ERROR, errorNotification.build());
+	}
+	
+	private class NotificationThread extends Thread {
+		public void run() {
+			while(downloadInProgress) {
+				String progress = Utils.formatFileSize(totalRead)+"/"+lengthString;
+	    		notificationBuilder.setContentText(progress);
+	        	notificationBuilder.setProgress(length, totalRead, false);
+	        	notificationManager.notify(Constants.NOTIFICATION_PODCAST_ITEM_DOWNLOAD_ONGOING, notificationBuilder.build());
+	        	try { Thread.sleep(NOTIFICATION_INTERVAL); } catch(Exception e) {}
+			}
+		}
 	}
 }

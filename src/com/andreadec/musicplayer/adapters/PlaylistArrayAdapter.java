@@ -17,7 +17,6 @@
 package com.andreadec.musicplayer.adapters;
 
 import java.util.*;
-
 import android.graphics.*;
 import android.graphics.drawable.*;
 import android.support.v4.util.*;
@@ -26,24 +25,18 @@ import android.widget.*;
 
 import com.andreadec.musicplayer.*;
 
-public class PlaylistArrayAdapter extends ArrayAdapter<Object> {
-	private final ArrayList<Object> values;
+public class PlaylistArrayAdapter extends MusicListArrayAdapter {
 	private PlaylistSong playingSong;
 	private boolean showSongImage;
 	private LruCache<String,Bitmap> imagesCache;
-	private int listImageSize;
-	private LayoutInflater inflater;
 	private Drawable songImage;
 	private final static int TYPE_ACTION=0, TYPE_PLAYLIST=1, TYPE_SONG=2;
  
 	public PlaylistArrayAdapter(MainActivity activity, ArrayList<Object> values, PlaylistSong playingSong) {
-		super(activity, R.layout.song_item, values);
-		this.values = values;
+		super(activity, values);
 		this.playingSong = playingSong;
 		this.imagesCache = activity.getImagesCache();
 		showSongImage = activity.getShowSongImage();
-		listImageSize = (int)activity.getResources().getDimension(R.dimen.listImageSize);
-		inflater = activity.getLayoutInflater();
 		songImage = activity.getResources().getDrawable(R.drawable.audio);
 	}
 	
@@ -105,10 +98,14 @@ public class PlaylistArrayAdapter extends ArrayAdapter<Object> {
 			viewHolder.artist.setText(song.getArtist());
 			
 			if(song.equals(playingSong)) {
-				view.setBackgroundResource(R.color.light_blue);
-				viewHolder.image.setImageResource(R.drawable.play_blue);
+				view.setBackgroundResource(R.color.playingItemBackground);
+				viewHolder.image.setImageResource(R.drawable.play_orange);
+				viewHolder.artist.setTextColor(playingTextColor);
+				viewHolder.title.setTextColor(playingTextColor);
 			} else {
 				view.setBackgroundDrawable(null);
+				viewHolder.artist.setTextColor(defaultTextColor);
+				viewHolder.title.setTextColor(defaultTextColor);
 				if(showSongImage) {
 					viewHolder.image.setImageDrawable(songImage);
 					if(song.hasImage()) {

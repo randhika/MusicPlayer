@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Andrea De Cesare
+ * Copyright 2012-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.andreadec.musicplayer.adapters;
 
 import java.io.*;
 import java.util.*;
-
 import android.graphics.*;
 import android.graphics.drawable.Drawable;
 import android.support.v4.util.*;
@@ -27,24 +26,18 @@ import android.widget.*;
 
 import com.andreadec.musicplayer.*;
 
-public class BrowserArrayAdapter extends ArrayAdapter<Object> {
-	private final ArrayList<Object> values;
+public class BrowserArrayAdapter extends MusicListArrayAdapter {
 	private BrowserSong playingSong;
 	private boolean showSongImage;
-	private int listImageSize;
 	private LruCache<String,Bitmap> imagesCache;
-	private LayoutInflater inflater;
 	private final static int TYPE_DIRECTORY=0, TYPE_SONG=1, TYPE_ACTION=2;
 	private Drawable songImage;
  
 	public BrowserArrayAdapter(MainActivity activity, ArrayList<Object> values, BrowserSong playingSong) {
-		super(activity, R.layout.song_item, values);
-		this.values = values;
+		super(activity, values);
 		this.playingSong = playingSong;
 		showSongImage = activity.getShowSongImage();
 		this.imagesCache = activity.getImagesCache();
-		listImageSize = (int)activity.getResources().getDimension(R.dimen.listImageSize);
-		inflater = activity.getLayoutInflater();
 		songImage = activity.getResources().getDrawable(R.drawable.audio);
 	}
 	
@@ -71,7 +64,7 @@ public class BrowserArrayAdapter extends ArrayAdapter<Object> {
 			if(type==TYPE_ACTION) {
 				view = inflater.inflate(R.layout.folder_item, parent, false);
 				viewHolder.title = (TextView)view.findViewById(R.id.textViewFolderItemFolder);
-				viewHolder.title.setTextColor(view.getResources().getColor(R.color.blue));
+				viewHolder.title.setTextColor(view.getResources().getColor(R.color.orange1));
 				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
 				viewHolder.image.setImageResource(R.drawable.back);
 			} else if(type==TYPE_DIRECTORY) {
@@ -90,7 +83,7 @@ public class BrowserArrayAdapter extends ArrayAdapter<Object> {
 			Action action = (Action)value;
 			viewHolder.title.setText(action.msg);
 		} else if(type==TYPE_DIRECTORY) {
-			File file = (File) value;
+			File file = (File)value;
 			viewHolder.title.setText(file.getName());
 		} else if(type==TYPE_SONG) {
 			BrowserSong song = (BrowserSong)value;
@@ -99,12 +92,16 @@ public class BrowserArrayAdapter extends ArrayAdapter<Object> {
 			viewHolder.title.setText(trackNumber + song.getTitle());
 			viewHolder.artist.setText(song.getArtist());
 			if(song.equals(playingSong)) {
-				view.setBackgroundResource(R.color.light_blue);
-				viewHolder.image.setImageResource(R.drawable.play_blue);
+				view.setBackgroundResource(R.color.playingItemBackground);
+				viewHolder.image.setImageResource(R.drawable.play_orange);
+				viewHolder.artist.setTextColor(playingTextColor);
+				viewHolder.title.setTextColor(playingTextColor);
 			} else {
 				view.setBackgroundDrawable(null);
 				if(showSongImage) {
 					viewHolder.image.setImageDrawable(songImage);
+					viewHolder.artist.setTextColor(defaultTextColor);
+					viewHolder.title.setTextColor(defaultTextColor);
 					if(song.hasImage()) {
 						Bitmap image;
 						synchronized(imagesCache) {

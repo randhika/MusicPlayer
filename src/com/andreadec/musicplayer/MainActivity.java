@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Andrea De Cesare
+ * Copyright 2012-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,29 @@
 package com.andreadec.musicplayer;
 
 import java.io.*;
-import java.net.URLDecoder;
+import java.net.*;
 import java.util.*;
+
+import com.andreadec.musicplayer.adapters.*;
+import com.readystatesoftware.systembartint.*;
 
 import android.media.AudioManager;
 import android.os.*;
 import android.preference.*;
 import android.support.v4.util.LruCache;
-import android.support.v4.view.*;
-import android.support.v4.view.ViewPager.*;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.app.*;
-import android.app.*;
+import android.text.TextUtils;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.*;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.util.*;
 import android.view.*;
+import android.view.WindowManager.LayoutParams;
 import android.view.View.*;
 import android.widget.*;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -40,7 +47,8 @@ import android.widget.CompoundButton.*;
 import android.widget.SeekBar.*;
 
 public class MainActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener {
-	private final static int PAGE_BROWSER=0, PAGE_PLAYLISTS=1, PAGE_RADIOS=2, PAGE_PODCASTS=3;
+	public final static int PAGE_BROWSER=0, PAGE_PLAYLISTS=1, PAGE_RADIOS=2, PAGE_PODCASTS=3;
+	public ColorStateList defaultTextViewColor;
 	
 	private TextView textViewArtist, textViewTitle, textViewTime;
 	private ImageButton imageButtonPrevious, imageButtonPlayPause, imageButtonNext, imageButtonToggleExtendedMenu;
@@ -53,6 +61,13 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	private Intent serviceIntent;
 	private BroadcastReceiver broadcastReceiver;
 	private SharedPreferences preferences;
+	private View buttonQuit;
+	
+	private DrawerLayout drawerLayout;
+	private RelativeLayout drawerContainer;
+	private ListView drawerList;
+	private NavigationDrawerArrayAdapter navigationAdapter;
+	private ActionBarDrawerToggle drawerToggle;
 	
 	private static final int POLLING_INTERVAL = 450; // Refresh time of the seekbar
 	private boolean pollingThreadRunning; // true if thread is active, false otherwise
@@ -63,12 +78,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	// Variables used to reduce computing on polling thread
 	private boolean isLengthAvailable = false;
 	private String songDurationString = "";
-	private float textViewTimeDefaultTextSize;
 	
-	private List<android.support.v4.app.Fragment> fragments;
-	private List<String> fragmentsTitles;
-	private PagerAdapter pagerAdapter;
-	private ViewPager viewPager;
+	private String[] pages;
+	private int currentPage = 0;
+	private MusicPlayerFragment currentFragment;
+	private FragmentManager fragmentManager;
 	
 	private LruCache<String,Bitmap> imagesCache;
 	
@@ -77,15 +91,20 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	
 	
 	/* Initializes the activity. */
-    @Override
+    @SuppressLint({ "InlinedApi", "NewApi" })
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         if(preferences.getBoolean(Constants.PREFERENCE_DISABLELOCKSCREEN, Constants.DEFAULT_DISABLELOCKSCREEN)) {
         	getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD); // Disable lock screen for this activity
+        }
+        
+        if(preferences.getBoolean(Constants.PREFERENCE_DARKTHEME, Constants.DEFAULT_DARKTHEME)) {
+        	setTheme(R.style.DarkTheme);
         }
         
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
@@ -108,6 +127,61 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         } else {
         	setContentView(R.layout.layout_main);
         }
+        
+        pages = new String[5];
+        pages[PAGE_BROWSER] = getResources().getString(R.string.browser);
+        pages[PAGE_PLAYLISTS] = getResources().getString(R.string.playlist);
+        pages[PAGE_RADIOS] = getResources().getString(R.string.radio);
+        pages[PAGE_PODCASTS] = getResources().getString(R.string.podcasts);
+        fragmentManager = getSupportFragmentManager();
+        setTitle(pages[currentPage]);
+        
+        
+        /* NAVIGATION DRAWER */
+        drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close) {
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                setTitle(pages[currentPage]);
+            }
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                setTitle(getResources().getString(R.string.app_name));
+            }
+        };
+        drawerLayout.setDrawerListener(drawerToggle);
+        if(Build.VERSION.SDK_INT>=11) getActionBar().setDisplayHomeAsUpEnabled(true);
+        drawerContainer = (RelativeLayout)findViewById(R.id.navigation_container);
+        drawerList = (ListView)findViewById(R.id.navigation_list);
+        navigationAdapter = new NavigationDrawerArrayAdapter(this, pages);
+        drawerList.setAdapter(navigationAdapter);
+        drawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
+        	@Override
+    	    public void onItemClick(@SuppressWarnings("rawtypes") AdapterView parent, View view, int position, long id) {
+        		openPage(position);
+        		drawerLayout.closeDrawer(drawerContainer);
+    	    }
+        });
+        buttonQuit = findViewById(R.id.navigation_buttonQuit);
+        buttonQuit.setOnClickListener(this);
+        
+        
+        
+        if(Build.VERSION.SDK_INT >= 19) {
+        	// Android 4.4+ only
+        	boolean translucentStatus = preferences.getBoolean(Constants.PREFERENCE_TRANSLUCENTSTATUSBAR, Constants.DEFAULT_TRANSLUCENTSTATUSBAR);
+        	boolean translucentNavigation = preferences.getBoolean(Constants.PREFERENCE_TRANSLUCENTNAVIGATIONBAR, Constants.DEFAULT_TRANSLUCENTNAVIGATIONBAR);
+        	
+        	if(translucentStatus) getWindow().addFlags(LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        	if(translucentNavigation) getWindow().addFlags(LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            
+        	SystemBarTintManager tintManager = new SystemBarTintManager(this);
+            if(translucentStatus) {
+            	tintManager.setStatusBarTintEnabled(true);
+                tintManager.setStatusBarTintResource(R.color.actionBarBackground);
+            }
+        }
+        
         
     	textViewArtist = (TextView)findViewById(R.id.textViewArtist);
         textViewTitle = (TextView)findViewById(R.id.textViewTitle);
@@ -140,44 +214,30 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         seekBar.setOnSeekBarChangeListener(this);
         seekBar.setClickable(false);
         textViewTime.setOnClickListener(this);
-        textViewTimeDefaultTextSize = textViewTime.getTextSize();
         
-        fragments = new Vector<android.support.v4.app.Fragment>();
-    	fragments.add(android.support.v4.app.Fragment.instantiate(this, BrowserFragment.class.getName()));
-        fragments.add(android.support.v4.app.Fragment.instantiate(this, PlaylistFragment.class.getName()));
-        fragments.add(android.support.v4.app.Fragment.instantiate(this, RadioFragment.class.getName()));
-        fragments.add(android.support.v4.app.Fragment.instantiate(this, PodcastsFragment.class.getName()));
-        fragmentsTitles = new Vector<String>();
-        fragmentsTitles.add(getResources().getString(R.string.browser));
-        fragmentsTitles.add(getResources().getString(R.string.playlist));
-        fragmentsTitles.add(getResources().getString(R.string.radio));
-        fragmentsTitles.add(getResources().getString(R.string.podcasts));
+        defaultTextViewColor = textViewTitle.getTextColors();
         
-        pagerAdapter = new PagerAdapter(getSupportFragmentManager(), fragments, fragmentsTitles);
-        viewPager = (ViewPager)findViewById(R.id.pager);
-        viewPager.setAdapter(pagerAdapter);
-        viewPager.setOnPageChangeListener(new OnPageChangeListener() {
-			@Override public void onPageScrollStateChanged(int arg0) {}
-			@Override public void onPageScrolled(int arg0, float arg1, int arg2) {}
-			@Override public void onPageSelected(int position) {
-				MusicPlayerFragment fragment = (MusicPlayerFragment)(pagerAdapter.getItem(position));
-				fragment.updateListView();
-			}
-        	
-        });
-        
-        if(preferences.getBoolean(Constants.PREFERENCE_SMALLPAGEINDICATOR, Constants.DEFAULT_SMALLPAGEINDICATOR)) {
-        	viewPager.removeView(findViewById(R.id.pagerTabStrip));
-        } else {
-        	viewPager.removeView(findViewById(R.id.pagerTitleStrip));
-        }
         
         showSongImage = preferences.getBoolean(Constants.PREFERENCE_SHOWSONGIMAGE, Constants.DEFAULT_SHOWSONGIMAGE);
         imagesCache = new LruCache<String,Bitmap>(Constants.IMAGES_CACHE_SIZE);
         
         serviceIntent = new Intent(this, MusicService.class);
         startService(serviceIntent); // Starts the service if it is not running
+        
+        openPage(PAGE_BROWSER);
         loadSongFromIntent();
+    }
+    
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        drawerToggle.syncState();
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        drawerToggle.onConfigurationChanged(newConfig);
     }
     
     /* Activity comes foreground */
@@ -207,8 +267,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
             	} else if(intent.getAction().equals("com.andreadec.musicplayer.playpausechanged")) {
             		updatePlayPauseButton();
             	} else if(intent.getAction().equals("com.andreadec.musicplayer.podcastdownloadcompleted")) {
-            		if(viewPager.getCurrentItem()==PAGE_PODCASTS) {
-            			PodcastsFragment podcastsFragment = (PodcastsFragment)pagerAdapter.getItem(PAGE_PODCASTS);
+            		if(currentPage==PAGE_PODCASTS) {
+            			PodcastsFragment podcastsFragment = (PodcastsFragment)currentFragment;
             			podcastsFragment.updateListView(true);
             		}
             	}
@@ -217,6 +277,46 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         };
         registerReceiver(broadcastReceiver, intentFilter);
         updatePlayPauseButton();
+    }
+    
+    @SuppressLint("NewApi")
+	@Override
+    public void setTitle(CharSequence title) {
+    	super.setTitle(title);
+    	if(Build.VERSION.SDK_INT>=11) {
+    		getActionBar().setTitle(title);
+    	}
+    }
+    
+    private void openPage(int page) {
+    	MusicPlayerFragment fragment;
+    	switch(page) {
+    	case PAGE_BROWSER:
+    		fragment = new BrowserFragment();
+    		break;
+    	case PAGE_PLAYLISTS:
+    		fragment = new PlaylistFragment();
+    		break;
+    	case PAGE_RADIOS:
+    		fragment = new RadioFragment();
+    		break;
+    	case PAGE_PODCASTS:
+    		fragment = new PodcastsFragment();
+    		break;
+    	default:
+    		return;
+    	}
+    	currentPage = page;
+    	currentFragment = fragment;
+    	FragmentTransaction transaction = fragmentManager.beginTransaction();
+    	transaction.remove(currentFragment);
+    	transaction.replace(R.id.page, fragment);
+    	transaction.addToBackStack(null);
+    	transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+    	transaction.commit();
+    	fragmentManager.executePendingTransactions();
+    	drawerList.setItemChecked(currentPage, true);
+    	setTitle(pages[currentPage]);
     }
     
     /* Called before onStop or when the screen is switched off. */
@@ -236,7 +336,15 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     		textViewTitle.setMinLines(1);
     		textViewTitle.setMaxLines(5);
     	} else {
-    		textViewTitle.setLines(Integer.parseInt(titleLines));
+    		int lines = Integer.parseInt(titleLines);
+    		textViewTitle.setLines(lines);
+    		if(lines==1) {
+    			textViewTitle.setSingleLine();
+    			textViewTitle.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+    			textViewTitle.setHorizontallyScrolling(true);
+    			textViewTitle.setMarqueeRepeatLimit(-1);
+    			textViewTitle.setSelected(true);
+    		}
     	}
     	
     	if(playingItem!=null) {
@@ -249,14 +357,6 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	    	isLengthAvailable = playingItem.isLengthAvailable();
 	    	if(isLengthAvailable) {
 	    		songDurationString = "/" + Utils.formatTime(musicService.getDuration());
-	    		
-	    		// Reduce time font size to avoid overflow on small screens
-	    		if(musicService.getDuration()>3600000) { // 1 hour
-	    			textViewTime.setTextSize(TypedValue.COMPLEX_UNIT_PX, textViewTimeDefaultTextSize-5);
-	    		} else {
-	    			textViewTime.setTextSize(TypedValue.COMPLEX_UNIT_PX, textViewTimeDefaultTextSize);
-	    		}
-	    		
 	    		seekBar.setVisibility(SeekBar.VISIBLE);
 	    	} else {
 	    		songDurationString = "";
@@ -289,7 +389,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     	updatePlayPauseButton();
     	updatePosition();
     	
-    	((MusicPlayerFragment)pagerAdapter.getItem(viewPager.getCurrentItem())).updateListView();
+    	currentFragment.updateListView();
     }
     
     /* Updates the play/pause button status according to the playing song. */
@@ -315,7 +415,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     /* Updates the shuffle/repeat/repeat_all icons according to the playing song */
     private void updateExtendedMenu() {
     	final int on = R.drawable.green_button;
-    	final int off = R.drawable.blue_button;
+    	final int off = R.drawable.orange_button;
     	if(musicService.getShuffle()) imageButtonShuffle.setBackgroundResource(on);
     	else imageButtonShuffle.setBackgroundResource(off);
     	if(musicService.getRepeat()) imageButtonRepeat.setBackgroundResource(on);
@@ -345,6 +445,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     	if(startPollingThread) startPollingThread();
     }
     
+    /* Manages songs opened from an external application */
     @Override
     protected void onNewIntent(Intent newIntent) {
     	setIntent(newIntent);
@@ -394,17 +495,23 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-    	if(viewPager.getCurrentItem()==PAGE_BROWSER) {
+    	boolean navigationDrawerOpen = drawerLayout.isDrawerOpen(drawerContainer);
+    	if(currentPage==PAGE_BROWSER && !navigationDrawerOpen) {
     		menu.findItem(R.id.menu_setAsBaseFolder).setVisible(true);
     		menu.findItem(R.id.menu_gotoBaseFolder).setVisible(true);
     	} else {
     		menu.findItem(R.id.menu_setAsBaseFolder).setVisible(false);
     		menu.findItem(R.id.menu_gotoBaseFolder).setVisible(false);
     	}
-    	if(viewPager.getCurrentItem()==PAGE_PODCASTS) {
+    	if(currentPage==PAGE_PODCASTS && !navigationDrawerOpen) {
     		menu.findItem(R.id.menu_removeDownloadedPodcasts).setVisible(true);
     	} else {
     		menu.findItem(R.id.menu_removeDownloadedPodcasts).setVisible(false);
+    	}
+    	if(navigationDrawerOpen || musicService==null || musicService.getCurrentPlayingItem()==null) {
+    		menu.findItem(R.id.menu_songInfo).setVisible(false);
+    	} else {
+    		menu.findItem(R.id.menu_songInfo).setVisible(true);
     	}
     	return true;
     }
@@ -412,13 +519,15 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     /* A menu item has been selected. */
     @Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+    	if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+          }
 		switch (item.getItemId()) {
 		case R.id.menu_gotoPlayingSongDirectory:
 			gotoPlayingItemPosition();
 			return true;
 		case R.id.menu_gotoBaseFolder:
-			BrowserFragment browserFragment = (BrowserFragment)pagerAdapter.getItem(PAGE_BROWSER);
-			browserFragment.gotoBaseFolder();
+			((BrowserFragment)currentFragment).gotoBaseFolder();
 			return true;
 		case R.id.menu_search:
 			if(preferences.getBoolean(Constants.PREFERENCE_ENABLECACHE, Constants.DEFAULT_ENABLECACHE)) {
@@ -434,12 +543,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			setBaseFolder(((MusicPlayerApplication)getApplication()).getCurrentDirectory().getDirectory());
 			return true;
 		case R.id.menu_removeDownloadedPodcasts:
-			PodcastsFragment podcastsFragment = (PodcastsFragment)pagerAdapter.getItem(PAGE_PODCASTS);
-			podcastsFragment.removeDownloadedPodcasts();
+			((PodcastsFragment)currentFragment).removeDownloadedPodcasts();
 			return true;
 		case R.id.menu_preferences:
-			Intent intentPreferences = new Intent(this, PreferencesActivity.class);
-			startActivity(intentPreferences);
+			startActivity(new Intent(this, PreferencesActivity.class));
 			return true;
 		case R.id.menu_quit:
 			quitApplication();
@@ -451,7 +558,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     
     @Override
 	public boolean onContextItemSelected(MenuItem item) {
-    	return ((MusicPlayerFragment)pagerAdapter.getItem(viewPager.getCurrentItem())).onContextItemSelected(item);
+    	return currentFragment.onContextItemSelected(item);
     }
 
     /* Button click handler. */
@@ -498,6 +605,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 				extendedMenu.setVisibility(View.VISIBLE);
 				imageButtonToggleExtendedMenu.setImageResource(R.drawable.collapse);
 			}
+		} else if(view.equals(buttonQuit)) {
+			quitApplication();
 		}
 	}
 	
@@ -548,15 +657,15 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		final PlayableItem playingItem = musicService.getCurrentPlayingItem();
 		if(playingItem==null) return;
 		if(playingItem instanceof BrowserSong) {
-			viewPager.setCurrentItem(PAGE_BROWSER);
+			openPage(PAGE_BROWSER);
 		} else if(playingItem instanceof PlaylistSong) {
-			viewPager.setCurrentItem(PAGE_PLAYLISTS);
+			openPage(PAGE_PLAYLISTS);
 		} else if(playingItem instanceof Radio) {
-			viewPager.setCurrentItem(PAGE_RADIOS);
+			openPage(PAGE_RADIOS);
 		} else if(playingItem instanceof PodcastItem) {
-			viewPager.setCurrentItem(PAGE_PODCASTS);
+			openPage(PAGE_PODCASTS);
 		}
-		((MusicPlayerFragment)pagerAdapter.getItem(viewPager.getCurrentItem())).gotoPlayingItemPosition(playingItem);
+		currentFragment.gotoPlayingItemPosition(playingItem);
 	}
 	
 	public void setBaseFolder(final File folder) {
@@ -599,7 +708,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			quitApplication();
 			return;
 		}
-		boolean executed = ((MusicPlayerFragment)pagerAdapter.getItem(viewPager.getCurrentItem())).onBackPressed();
+		boolean executed = currentFragment.onBackPressed();
 		if(!executed && preferences.getBoolean(Constants.PREFERENCE_ENABLEBACKDOUBLEPRESSTOQUITAPP, Constants.DEFAULT_ENABLEBACKDOUBLEPRESSTOQUITAPP)) {
 			backPressedOnce = true;
 			Toast.makeText(this, R.string.pressAgainToQuitApp, Toast.LENGTH_SHORT).show();

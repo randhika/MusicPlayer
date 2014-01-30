@@ -19,22 +19,17 @@ package com.andreadec.musicplayer.adapters;
 import java.util.*;
 
 import com.andreadec.musicplayer.*;
-
 import android.graphics.*;
 import android.view.*;
 import android.widget.*;
 
-public class PodcastsArrayAdapter extends ArrayAdapter<Object> {
-	private ArrayList<Object> values;
-	private LayoutInflater inflater;
+public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 	private PodcastItem currentPodcastItem;
 	private final static int TYPE_ACTION=0, TYPE_PODCAST=1, TYPE_PODCAST_ITEM=2;
 	
 	public PodcastsArrayAdapter(MainActivity activity, ArrayList<Object> values, PodcastItem currentPodcastItem) {
-		super(activity, R.layout.song_item, values);
-		this.values = values;
+		super(activity, values);
 		this.currentPodcastItem = currentPodcastItem;
-		inflater = activity.getLayoutInflater();
 	}
 	
 	@Override
@@ -105,10 +100,16 @@ public class PodcastsArrayAdapter extends ArrayAdapter<Object> {
 			}
 			viewHolder.text3.setText(podcastItem.getStatusString());
 			if(podcastItem.equals(currentPodcastItem)) {
-				view.setBackgroundResource(R.color.light_blue);
-				viewHolder.image.setImageResource(R.drawable.play_blue);
+				view.setBackgroundResource(R.color.playingItemBackground);
+				viewHolder.image.setImageResource(R.drawable.play_orange);
+				viewHolder.text1.setTextColor(playingTextColor);
+				viewHolder.text2.setTextColor(playingTextColor);
+				viewHolder.text3.setTextColor(playingTextColor);
 			} else {
 				view.setBackgroundDrawable(null);
+				viewHolder.text1.setTextColor(defaultTextColor);
+				viewHolder.text2.setTextColor(defaultTextColor);
+				viewHolder.text3.setTextColor(defaultTextColor);
 				viewHolder.image.setImageResource(R.drawable.audio);
 			}
 		}

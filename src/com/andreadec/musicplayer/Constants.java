@@ -42,7 +42,10 @@ public class Constants {
 	public final static String PREFERENCE_PODCASTSDIRECTORY = "podcastsDirectory";
 	public final static String PREFERENCE_SHOWSONGIMAGE = "showSongImage";
 	public final static String PREFERENCE_ENABLEBACKDOUBLEPRESSTOQUITAPP = "enableBackDoublePressToQuitApp";
-	public final static String PREFERENCE_SMALLPAGEINDICATOR = "smallPageIndicator";
+	public final static String PREFERENCE_SHOWRELATIVEPATHUNDERBASEDIRECTORY = "showRelativePathUnderBaseDirectory";
+	public final static String PREFERENCE_DARKTHEME = "darkTheme";
+	public final static String PREFERENCE_TRANSLUCENTSTATUSBAR = "translucentStatusBar";
+	public final static String PREFERENCE_TRANSLUCENTNAVIGATIONBAR = "translucentNavigationBar";
 	
 	public final static String PREFERENCE_SHAKEINTERVAL = "shakeInterval";
 	public final static String PREFERENCE_SHAKETHRESHOLD = "shakeThreshold";
@@ -56,7 +59,7 @@ public class Constants {
 	public final static String DEFAULT_SONGSSORTINGMETHOD = "nat";
 	public final static boolean DEFAULT_ENABLECACHE = true;
 	public final static boolean DEFAULT_DISABLELOCKSCREEN = false;
-	public final static String DEFAULT_TITLELINES = "2";
+	public final static String DEFAULT_TITLELINES = "1";
 	public final static String DEFAULT_BASEFOLDER = null;
 	public final static boolean DEFAULT_SHUFFLE = false;
 	public final static boolean DEFAULT_REPEAT = false;
@@ -79,7 +82,10 @@ public class Constants {
 	public final static String DEFAULT_SHAKEACTION = "playpause";
 	public final static boolean DEFAULT_SHOWSONGIMAGE = true;
 	public final static boolean DEFAULT_ENABLEBACKDOUBLEPRESSTOQUITAPP = true;
-	public final static boolean DEFAULT_SMALLPAGEINDICATOR = true;
+	public final static boolean DEFAULT_SHOWRELATIVEPATHUNDERBASEDIRECTORY = true;
+	public final static boolean DEFAULT_DARKTHEME = false;
+	public final static boolean DEFAULT_TRANSLUCENTSTATUSBAR = true;
+	public final static boolean DEFAULT_TRANSLUCENTNAVIGATIONBAR = true;
 	
 	
 	// Notifications

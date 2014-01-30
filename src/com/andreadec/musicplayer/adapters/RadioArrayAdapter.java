@@ -17,23 +17,18 @@
 package com.andreadec.musicplayer.adapters;
 
 import java.util.*;
-
 import android.view.*;
 import android.widget.*;
 
 import com.andreadec.musicplayer.*;
 
-public class RadioArrayAdapter extends ArrayAdapter<Object> {
-	private final ArrayList<Object> values;
-	private LayoutInflater inflater;
+public class RadioArrayAdapter extends MusicListArrayAdapter {
 	private final static int TYPE_ACTION=0, TYPE_RADIO=1;
 	private Radio playingRadio;
  
 	public RadioArrayAdapter(MainActivity activity, ArrayList<Object> values, Radio playingRadio) {
-		super(activity, R.layout.song_item, values);
-		this.values = values;
+		super(activity, values);
 		this.playingRadio = playingRadio;
-		inflater = activity.getLayoutInflater();
 	}
 	
 	@Override
@@ -77,11 +72,13 @@ public class RadioArrayAdapter extends ArrayAdapter<Object> {
 			Radio radio = (Radio)item;
 			viewHolder.text.setText(radio.getTitle());
 			if(radio.equals(playingRadio)) {
-				view.setBackgroundResource(R.color.light_blue);
-				viewHolder.image.setImageResource(R.drawable.play_blue);
+				view.setBackgroundResource(R.color.playingItemBackground);
+				viewHolder.image.setImageResource(R.drawable.play_orange);
+				viewHolder.text.setTextColor(playingTextColor);
 			} else {
 				view.setBackgroundDrawable(null);
 				viewHolder.image.setImageResource(R.drawable.microphone);
+				viewHolder.text.setTextColor(defaultTextColor);
 			}
 		}
 		

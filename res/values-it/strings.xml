@@ -1,6 +1,6 @@
 <!--
 /*
- * Copyright 2012-2013 Andrea De Cesare
+ * Copyright 2012-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,7 +146,14 @@
 	<string name="pressAgainToQuitApp">Premi nuovamente per uscire</string>
 	<string name="enableBackDoublePressToQuitApp">Tasto indietro per uscire</string>
 	<string name="enableBackDoublePressToQuitAppSummary">Chiudi l\'applicazione premendo due volte il tasto indietro.</string>
-	<string name="smallPageIndicator">Usa indicatore di pagina ridotto</string>
+	<string name="showRelativePathUnderBaseDirectory">Percorso relativo</string>
+	<string name="showRelativePathUnderBaseDirectorySummary">Mostra percorso relativo per le cartelle contenute nella directory principale.</string>
+	<string name="darkTheme">Tema scuro</string>
+	<string name="translucentStatusBar">Barra di stato trasparente</string>
+	<string name="translucentNavigationBar">Barra di navigazione trasparente</string>
+	<string name="restartNeeded">Riavvio necessario</string>
+	<string name="restartNeededConfirm">Per applicare alcune impostazioni è necessario riavviare l\'applicazione. Riavviare ora?</string>
+	<string name="restartNeededMessage">Per applicare alcune impostazioni è necessario riavviare l\'applicazione.</string>
 	
 	<!-- Podcasts -->
 	<string name="podcast">Podcast</string>
@@ -186,8 +193,7 @@
 	<string name="restartToApply">Per applicare questa impostazione è necessario riavviare l\'applicazione!</string>
 	
 	<!-- Overlay helper -->
-	<string name="overlayMain1">Music Player</string>
-	<string name="overlayMain2">Scorri a destra o sinistra per passare alle cartelle, alle playlist ed alle radio web.</string>
+	<string name="overlayMain">Benvenuto nel Music Player.\n\nPer rendere più agevole l\'accesso ai brani, vai nella cartella principale dove hai la tua musica e scegli \"Imposta come cartella base\" dal menu.</string>
 	<string name="overlayIndexing">Per migliorare i tempi di caricamento ed abilitare la ricerca delle canzoni, questa app deve indicizzare la cartella della musica.\n\nPer fare ciò vai nella cartella principale dove hai la tua musica e scegli \"Imposta come cartella base\" dal menu.</string>
 	
 	<!-- Strings for about page -->

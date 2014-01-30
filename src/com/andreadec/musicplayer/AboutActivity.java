@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Andrea De Cesare
+ * Copyright 2012-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class AboutActivity extends Activity {
         
         String about = "<h1>"+resources.getString(R.string.app_name)+"</h1>";
         about += "<p>"+resources.getString(R.string.version, version)+"</p>";
-        about += "<p>&copy; 2012-2013 Andrea De Cesare</p>";
+        about += "<p>&copy; 2012-2014 Andrea De Cesare</p>";
         about += "<p><a href=\"https://github.com/andreadec/MusicPlayer\">https://github.com/andreadec/MusicPlayer</a></p>";
         
         about += "<h2>&nbsp;</h2>";
@@ -67,6 +67,10 @@ public class AboutActivity extends Activity {
         
         about += "<h5>DragSortListView</h5>";
         about += "<p>Copyright 2012 Carl Bauer</p>";
+        about += resources.getString(R.string.apacheLicense);
+        
+        about += "<h5>System Bar Tint</h5>";
+        about += "<p>Copyright 2013 readyState Software Limited</p>";
         about += resources.getString(R.string.apacheLicense);
         
         about += "<h5>"+resources.getString(R.string.icons)+"</h5>";

@@ -28,9 +28,12 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         dslv:float_alpha="0.6"
-        dslv:float_background_color="@color/light_blue"
+        dslv:float_background_color="@color/orange12"
         dslv:drag_handle_id="@id/imageViewItemImage"
-        dslv:drag_start_mode="onMove" >
+        dslv:drag_start_mode="onMove"
+        dslv:remove_enabled="true"
+        dslv:remove_mode="flingRemove"
+        dslv:fling_handle_id="@id/imageViewItemImage" >
     </com.mobeta.android.dslv.DragSortListView>
 
 </LinearLayout>
