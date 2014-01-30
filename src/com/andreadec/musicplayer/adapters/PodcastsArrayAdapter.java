@@ -19,17 +19,31 @@ package com.andreadec.musicplayer.adapters;
 import java.util.*;
 
 import com.andreadec.musicplayer.*;
+
+import android.content.*;
 import android.graphics.*;
+import android.preference.*;
 import android.view.*;
 import android.widget.*;
 
 public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 	private PodcastItem currentPodcastItem;
 	private final static int TYPE_ACTION=0, TYPE_PODCAST=1, TYPE_PODCAST_ITEM=2;
+	private final int iconNew, iconDownload, iconSave;
 	
 	public PodcastsArrayAdapter(MainActivity activity, ArrayList<Object> values, PodcastItem currentPodcastItem) {
 		super(activity, values);
 		this.currentPodcastItem = currentPodcastItem;
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+		if(preferences.getBoolean(Constants.PREFERENCE_DARKTHEME, Constants.DEFAULT_DARKTHEME)) {
+			iconNew = R.drawable.accept;
+			iconDownload = R.drawable.download;
+			iconSave = R.drawable.save;
+		} else {
+			iconNew = R.drawable.accept_dark;
+			iconDownload = R.drawable.download_dark;
+			iconSave = R.drawable.save_dark;
+		}
 	}
 	
 	@Override
@@ -55,18 +69,19 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 			viewHolder = new ViewHolder();
 			if(type==TYPE_ACTION) {
 				view = inflater.inflate(R.layout.action_item, parent, false);
-				viewHolder.text1 = (TextView)view.findViewById(R.id.textView);
+				viewHolder.textTitle = (TextView)view.findViewById(R.id.textView);
 				viewHolder.image = (ImageView)view.findViewById(R.id.imageView);
 			} else if(type==TYPE_PODCAST) {
 				view = inflater.inflate(R.layout.folder_item, parent, false);
-				viewHolder.text1 = (TextView)view.findViewById(R.id.textViewFolderItemFolder);
+				viewHolder.textTitle = (TextView)view.findViewById(R.id.textViewFolderItemFolder);
 				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
 			} else {
 				view = inflater.inflate(R.layout.podcast_item, parent, false);
-				viewHolder.text1 = (TextView)view.findViewById(R.id.textViewPodcastTitle);
-				viewHolder.text2 = (TextView)view.findViewById(R.id.textViewPodcastInfo);
-				viewHolder.text3 = (TextView)view.findViewById(R.id.textViewPodcastStatus);
+				viewHolder.textTitle = (TextView)view.findViewById(R.id.textViewPodcastTitle);
+				viewHolder.textInfo = (TextView)view.findViewById(R.id.textViewPodcastInfo);
+				viewHolder.textStatus = (TextView)view.findViewById(R.id.textViewPodcastStatus);
 				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
+				viewHolder.imageStatus = (ImageView)view.findViewById(R.id.imageViewPodcastStatus);
 			}
 		} else {
 			viewHolder = (ViewHolder)view.getTag();
@@ -74,7 +89,7 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 		
 		if (value instanceof Action) {
 			Action action = (Action)value;
-			viewHolder.text1.setText(action.msg);
+			viewHolder.textTitle.setText(action.msg);
 			if(action.action==Action.ACTION_GO_BACK) {
 				viewHolder.image.setImageResource(R.drawable.back);
 			} else if(action.action==Action.ACTION_UPDATE) {
@@ -84,32 +99,45 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 			}
 		} else if(value instanceof Podcast) {
 			Podcast podcast = (Podcast)value;
-			viewHolder.text1.setText(podcast.getName());
+			viewHolder.textTitle.setText(podcast.getName());
 			Bitmap podcastImage = podcast.getImage();
 			if(podcastImage!=null) {
 				viewHolder.image.setImageBitmap(podcastImage);
 			}
 		} else if(value instanceof PodcastItem) {
 			PodcastItem podcastItem = (PodcastItem)value;
-			viewHolder.text1.setText(podcastItem.getTitle());
+			viewHolder.textTitle.setText(podcastItem.getTitle());
 			String duration = podcastItem.getDuration();
 			if(duration!=null) {
-				viewHolder.text2.setText(duration);
+				viewHolder.textInfo.setText(duration);
 			} else {
-				viewHolder.text2.setVisibility(View.GONE);
+				viewHolder.textInfo.setVisibility(View.GONE);
 			}
-			viewHolder.text3.setText(podcastItem.getStatusString());
+			viewHolder.textStatus.setText(podcastItem.getStatusString());
+			switch(podcastItem.getStatus()) {
+			case PodcastItem.STATUS_NEW:
+				viewHolder.imageStatus.setImageResource(iconNew);
+				break;
+			case PodcastItem.STATUS_DOWNLOADING:
+				viewHolder.imageStatus.setImageResource(iconDownload);
+				break;
+			case PodcastItem.STATUS_DOWNLOADED:
+				viewHolder.imageStatus.setImageResource(iconSave);
+				break;
+			default:
+				viewHolder.imageStatus.setImageDrawable(null);
+			}
 			if(podcastItem.equals(currentPodcastItem)) {
 				view.setBackgroundResource(R.color.playingItemBackground);
 				viewHolder.image.setImageResource(R.drawable.play_orange);
-				viewHolder.text1.setTextColor(playingTextColor);
-				viewHolder.text2.setTextColor(playingTextColor);
-				viewHolder.text3.setTextColor(playingTextColor);
+				viewHolder.textTitle.setTextColor(playingTextColor);
+				viewHolder.textInfo.setTextColor(playingTextColor);
+				viewHolder.textStatus.setTextColor(playingTextColor);
 			} else {
 				view.setBackgroundDrawable(null);
-				viewHolder.text1.setTextColor(defaultTextColor);
-				viewHolder.text2.setTextColor(defaultTextColor);
-				viewHolder.text3.setTextColor(defaultTextColor);
+				viewHolder.textTitle.setTextColor(defaultTextColor);
+				viewHolder.textInfo.setTextColor(defaultTextColor);
+				viewHolder.textStatus.setTextColor(defaultTextColor);
 				viewHolder.image.setImageResource(R.drawable.audio);
 			}
 		}
@@ -119,9 +147,10 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 	}
 	
 	private class ViewHolder {
-		public TextView text1;
-		public TextView text2;
-		public TextView text3;
+		public TextView textTitle;
+		public TextView textInfo;
+		public TextView textStatus;
 		public ImageView image;
+		public ImageView imageStatus;
 	}
 }
