@@ -128,7 +128,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         	setContentView(R.layout.layout_main);
         }
         
-        pages = new String[5];
+        pages = new String[4];
         pages[PAGE_BROWSER] = getResources().getString(R.string.browser);
         pages[PAGE_PLAYLISTS] = getResources().getString(R.string.playlist);
         pages[PAGE_RADIOS] = getResources().getString(R.string.radio);
