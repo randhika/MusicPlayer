@@ -36,13 +36,4 @@
         android:textStyle="bold"
         android:paddingBottom="30dp" />
     
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/overlayIndexing"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
-        android:gravity="center" />
-    
 </LinearLayout>

@@ -151,7 +151,9 @@ public class MusicService extends Service implements OnCompletionListener {
         };
         registerReceiver(broadcastReceiver, intentFilter);
         
-        loadLastSong();
+        if(!isPlaying()) {
+        	loadLastSong();
+        }
         
         startForeground(Constants.NOTIFICATION_MAIN, notification);
 		return START_STICKY;
