@@ -113,12 +113,9 @@ public class MusicService extends Service implements OnCompletionListener {
 		shakeListener = new ShakeListener(this);
 		if(preferences.getBoolean(Constants.PREFERENCE_SHAKEENABLED, Constants.DEFAULT_SHAKEENABLED)) {
 			shakeListener.enable();
-		}		
-	}
-	
-	/* Called when service is started. */
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
+		}
+		
+		
 		updateNotificationMessage();
 		telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE); // Start listen for telephony events
 		
@@ -156,6 +153,11 @@ public class MusicService extends Service implements OnCompletionListener {
         }
         
         startForeground(Constants.NOTIFICATION_MAIN, notification);
+	}
+	
+	/* Called when service is started. */
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
 		return START_STICKY;
 	}
 	

@@ -153,7 +153,6 @@
 	<string name="translucentStatusBar">Translucent status bar</string>
 	<string name="translucentNavigationBar">Translucent navigation bar</string>
 	<string name="restartNeeded">Restart needed</string>
-	<string name="restartNeededConfirm">To apply some settings the app must be restarted. Restart now?</string>
 	<string name="restartNeededMessage">To apply some settings the app must be restarted.</string>
 	
 	<!-- Podcasts -->

@@ -152,7 +152,6 @@
 	<string name="translucentStatusBar">Barra di stato trasparente</string>
 	<string name="translucentNavigationBar">Barra di navigazione trasparente</string>
 	<string name="restartNeeded">Riavvio necessario</string>
-	<string name="restartNeededConfirm">Per applicare alcune impostazioni è necessario riavviare l\'applicazione. Riavviare ora?</string>
 	<string name="restartNeededMessage">Per applicare alcune impostazioni è necessario riavviare l\'applicazione.</string>
 	
 	<!-- Podcasts -->

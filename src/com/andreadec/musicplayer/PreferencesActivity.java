@@ -105,28 +105,12 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		if(needsRestart) {
 			if(Build.VERSION.SDK_INT>=11) {
-				AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-				dialog.setTitle(R.string.restartNeeded);
-				dialog.setMessage(R.string.restartNeededConfirm);
-				dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-					@Override public void onClick(DialogInterface dialog, int which) {
-						intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-						startActivity(intent);
-					}
-				});
-				dialog.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-					@Override public void onClick(DialogInterface dialog, int which) {
-						startActivity(intent);
-					}
-				});
-				dialog.show();
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 			} else {
 				Utils.showMessageDialog(this, R.string.restartNeeded, R.string.restartNeededMessage);
-				startActivity(intent);
 			}
-		} else {
-			startActivity(intent);
 		}
+		startActivity(intent);
 	}
 	
 	@Override
