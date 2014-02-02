@@ -19,8 +19,6 @@ package com.andreadec.musicplayer.adapters;
 import java.util.*;
 
 import com.andreadec.musicplayer.*;
-
-import android.content.res.*;
 import android.view.*;
 import android.widget.*;
 
@@ -28,15 +26,11 @@ public class MusicListArrayAdapter extends ArrayAdapter<Object> {
 	protected final ArrayList<Object> values;
 	protected LayoutInflater inflater;
 	protected int listImageSize;
-	protected int playingTextColor;
-	protected ColorStateList defaultTextColor;
 
 	public MusicListArrayAdapter(MainActivity activity, ArrayList<Object> values) {
 		super(activity, R.layout.song_item, values);
 		this.values = values;
 		inflater = activity.getLayoutInflater();
 		listImageSize = (int)activity.getResources().getDimension(R.dimen.listImageSize);
-		playingTextColor = activity.getResources().getColor(R.color.playingItemTextColor);
-		defaultTextColor = activity.defaultTextViewColor;
 	}
 }

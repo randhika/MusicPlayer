@@ -17,6 +17,7 @@
 package com.andreadec.musicplayer.adapters;
 
 import java.util.*;
+
 import android.view.*;
 import android.widget.*;
 
@@ -42,7 +43,6 @@ public class RadioArrayAdapter extends MusicListArrayAdapter {
 		else return TYPE_RADIO;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public View getView(int position, View view, ViewGroup parent) {
 		Object item = values.get(position);
@@ -59,6 +59,7 @@ public class RadioArrayAdapter extends MusicListArrayAdapter {
 				view = inflater.inflate(R.layout.radio_item, parent, false);
 				viewHolder.text = (TextView)view.findViewById(R.id.textViewRadioItem);
 				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
+				viewHolder.card = view.findViewById(R.id.card);
 			}
 		} else {
 			viewHolder = (ViewHolder)view.getTag();
@@ -72,13 +73,11 @@ public class RadioArrayAdapter extends MusicListArrayAdapter {
 			Radio radio = (Radio)item;
 			viewHolder.text.setText(radio.getTitle());
 			if(radio.equals(playingRadio)) {
-				view.setBackgroundResource(R.color.playingItemBackground);
+				viewHolder.card.setBackgroundResource(R.drawable.card_playing);
 				viewHolder.image.setImageResource(R.drawable.play_orange);
-				viewHolder.text.setTextColor(playingTextColor);
 			} else {
-				view.setBackgroundDrawable(null);
+				viewHolder.card.setBackgroundResource(R.drawable.card);
 				viewHolder.image.setImageResource(R.drawable.microphone);
-				viewHolder.text.setTextColor(defaultTextColor);
 			}
 		}
 		
@@ -89,5 +88,6 @@ public class RadioArrayAdapter extends MusicListArrayAdapter {
 	private class ViewHolder {
 		public TextView text;
 		public ImageView image;
+		public View card;
 	}
 }

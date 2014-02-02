@@ -22,10 +22,6 @@
         <item name="android:actionBarStyle">@style/MyActionBar</item>
     </style>
     
-    <style name="DarkTheme" parent="android:Theme.Holo">
-        <item name="android:actionBarStyle">@style/MyActionBar</item>
-    </style>
-    
     <style name="MyActionBar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
         <item name="android:background">@color/actionBarBackground</item>
         <item name="android:titleTextStyle">@style/MyTheme.ActionBar.TitleTextStyle</item>

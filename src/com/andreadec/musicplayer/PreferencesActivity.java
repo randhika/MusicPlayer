@@ -39,7 +39,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 	
 	private SharedPreferences preferences;
 	private Preference preferenceClearCache, preferenceIndexBaseFolder, preferenceAbout, preferenceImport, preferenceExport;
-	private Preference preferenceDarkTheme, preferenceTranslucentStatusBar, preferenceTranslucentNavigationBar;
+	private Preference preferenceTranslucentStatusBar, preferenceTranslucentNavigationBar;
 	
 	private boolean needsRestart;
 	
@@ -85,11 +85,8 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
     		preferencePodcastsDirectory.setText(Podcast.DEFAULT_PODCASTS_PATH);
     	}
     	
-    	
-    	preferenceDarkTheme = findPreference("darkTheme");
     	preferenceTranslucentStatusBar = findPreference("translucentStatusBar");
     	preferenceTranslucentNavigationBar = findPreference("translucentNavigationBar");
-    	preferenceDarkTheme.setOnPreferenceChangeListener(this);
     	preferenceTranslucentStatusBar.setOnPreferenceChangeListener(this);
     	preferenceTranslucentNavigationBar.setOnPreferenceChangeListener(this);
 	}
@@ -298,7 +295,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
-		if(preference.equals(preferenceDarkTheme) || preference.equals(preferenceTranslucentNavigationBar) || preference.equals(preferenceTranslucentStatusBar)) {
+		if(preference.equals(preferenceTranslucentNavigationBar) || preference.equals(preferenceTranslucentStatusBar)) {
 			needsRestart = true;
 		}
 		return true;

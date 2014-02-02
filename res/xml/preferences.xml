@@ -44,10 +44,6 @@
     	    android:summary="@string/showRelativePathUnderBaseDirectorySummary"
     	    android:defaultValue="true" />
     	<CheckBoxPreference
-    	    android:key="darkTheme"
-    	    android:title="@string/darkTheme"
-    	    android:defaultValue="false" />
-    	<CheckBoxPreference
     	    android:key="translucentStatusBar"
     	    android:title="@string/translucentStatusBar"
     	    android:defaultValue="true" />

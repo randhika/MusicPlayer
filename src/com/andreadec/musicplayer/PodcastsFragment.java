@@ -46,8 +46,8 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		if (container == null) return null;
-		View view = inflater.inflate(R.layout.layout_podcasts, container, false);
-		listViewPodcasts = (ListView)view.findViewById(R.id.listViewPodcasts);
+		View view = inflater.inflate(R.layout.layout_simple_list, container, false);
+		listViewPodcasts = (ListView)view.findViewById(R.id.listView);
 		listViewPodcasts.setOnItemClickListener(this);
 		registerForContextMenu(listViewPodcasts);
 		updateListView();

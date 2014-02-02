@@ -148,7 +148,6 @@
 	<string name="enableBackDoublePressToQuitAppSummary">Chiudi l\'applicazione premendo due volte il tasto indietro.</string>
 	<string name="showRelativePathUnderBaseDirectory">Percorso relativo</string>
 	<string name="showRelativePathUnderBaseDirectorySummary">Mostra percorso relativo per le cartelle contenute nella directory principale.</string>
-	<string name="darkTheme">Tema scuro</string>
 	<string name="translucentStatusBar">Barra di stato trasparente</string>
 	<string name="translucentNavigationBar">Barra di navigazione trasparente</string>
 	<string name="restartNeeded">Riavvio necessario</string>

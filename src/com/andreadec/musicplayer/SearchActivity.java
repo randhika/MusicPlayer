@@ -47,10 +47,6 @@ public class SearchActivity extends Activity implements OnClickListener, OnItemC
         
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         
-        if(preferences.getBoolean(Constants.PREFERENCE_DARKTHEME, Constants.DEFAULT_DARKTHEME)) {
-        	setTheme(R.style.DarkTheme);
-        }
-        
         if(preferences.getBoolean(Constants.PREFERENCE_SHOWHELPOVERLAYINDEXING, true) && preferences.getString(Constants.PREFERENCE_BASEFOLDER, "/").equals("/")) {
         	final FrameLayout frameLayout = new FrameLayout(this);
         	LayoutInflater layoutInflater = getLayoutInflater();

@@ -46,8 +46,8 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.layout_browser, container, false);
-		listViewBrowser = (ListView)view.findViewById(R.id.listViewBrowser);
+		View view = inflater.inflate(R.layout.layout_simple_list, container, false);
+		listViewBrowser = (ListView)view.findViewById(R.id.listView);
 		listViewBrowser.setOnItemClickListener(this);
 		registerForContextMenu(listViewBrowser);
 		updateListView(false);

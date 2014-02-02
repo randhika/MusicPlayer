@@ -103,10 +103,6 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         	getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD); // Disable lock screen for this activity
         }
         
-        if(preferences.getBoolean(Constants.PREFERENCE_DARKTHEME, Constants.DEFAULT_DARKTHEME)) {
-        	setTheme(R.style.DarkTheme);
-        }
-        
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         
         if(preferences.getBoolean(Constants.PREFERENCE_SHOWHELPOVERLAYMAINACTIVITY, true)) {

@@ -51,6 +51,7 @@
     <color name="navigationSelection">@color/lightGrey</color>
     <color name="navigationTextColor">@color/black</color>
     
-    <color name="playingItemBackground">@color/orange12</color>
-    <color name="playingItemTextColor">@color/black</color>
+    <color name="cardColor">@color/white</color>
+    <color name="cardPlayingColor">@color/orange12</color>
+    <color name="cardBorderColor">#ccc</color>
 </resources>

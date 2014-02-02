@@ -43,7 +43,6 @@ public class Constants {
 	public final static String PREFERENCE_SHOWSONGIMAGE = "showSongImage";
 	public final static String PREFERENCE_ENABLEBACKDOUBLEPRESSTOQUITAPP = "enableBackDoublePressToQuitApp";
 	public final static String PREFERENCE_SHOWRELATIVEPATHUNDERBASEDIRECTORY = "showRelativePathUnderBaseDirectory";
-	public final static String PREFERENCE_DARKTHEME = "darkTheme";
 	public final static String PREFERENCE_TRANSLUCENTSTATUSBAR = "translucentStatusBar";
 	public final static String PREFERENCE_TRANSLUCENTNAVIGATIONBAR = "translucentNavigationBar";
 	
@@ -83,7 +82,6 @@ public class Constants {
 	public final static boolean DEFAULT_SHOWSONGIMAGE = true;
 	public final static boolean DEFAULT_ENABLEBACKDOUBLEPRESSTOQUITAPP = true;
 	public final static boolean DEFAULT_SHOWRELATIVEPATHUNDERBASEDIRECTORY = true;
-	public final static boolean DEFAULT_DARKTHEME = false;
 	public final static boolean DEFAULT_TRANSLUCENTSTATUSBAR = true;
 	public final static boolean DEFAULT_TRANSLUCENTNAVIGATIONBAR = true;
 	

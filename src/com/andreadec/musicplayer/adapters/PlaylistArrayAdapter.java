@@ -53,7 +53,6 @@ public class PlaylistArrayAdapter extends MusicListArrayAdapter {
 		return -1;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public View getView(int position, View view, ViewGroup parent) {
 		Object value = values.get(position);
@@ -74,6 +73,7 @@ public class PlaylistArrayAdapter extends MusicListArrayAdapter {
 				viewHolder.title = (TextView)view.findViewById(R.id.textViewSongItemTitle);
 				viewHolder.artist = (TextView)view.findViewById(R.id.textViewSongItemArtist);
 				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
+				viewHolder.card = view.findViewById(R.id.card);
 			}
 		} else {
 			viewHolder = (ViewHolder)view.getTag();
@@ -98,14 +98,10 @@ public class PlaylistArrayAdapter extends MusicListArrayAdapter {
 			viewHolder.artist.setText(song.getArtist());
 			
 			if(song.equals(playingSong)) {
-				view.setBackgroundResource(R.color.playingItemBackground);
+				viewHolder.card.setBackgroundResource(R.drawable.card_playing);
 				viewHolder.image.setImageResource(R.drawable.play_orange);
-				viewHolder.artist.setTextColor(playingTextColor);
-				viewHolder.title.setTextColor(playingTextColor);
 			} else {
-				view.setBackgroundDrawable(null);
-				viewHolder.artist.setTextColor(defaultTextColor);
-				viewHolder.title.setTextColor(defaultTextColor);
+				viewHolder.card.setBackgroundResource(R.drawable.card);
 				if(showSongImage) {
 					viewHolder.image.setImageDrawable(songImage);
 					if(song.hasImage()) {
@@ -130,5 +126,6 @@ public class PlaylistArrayAdapter extends MusicListArrayAdapter {
 		public TextView artist;
 		public TextView title;
 		public ImageView image;
+		public View card;
 	}
 }

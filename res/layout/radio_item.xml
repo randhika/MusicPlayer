@@ -17,26 +17,36 @@
  */
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp" >
+    android:layout_height="match_parent" >
 
-    <ImageView
-        android:id="@+id/imageViewItemImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:src="@drawable/microphone" />
+	<LinearLayout
+	    android:id="@+id/card"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal"
+	    style="@style/card" >
+	
+	    <ImageView
+	        android:id="@+id/imageViewItemImage"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center_vertical"
+	        android:src="@drawable/microphone"
+	        android:paddingTop="5dp"
+	        android:paddingBottom="5dp" />
+	
+	    <TextView
+	        android:id="@+id/textViewRadioItem"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:gravity="center_vertical"
+	        android:textAppearance="?android:attr/textAppearanceLarge"
+	        android:textStyle="bold"
+	        android:paddingTop="5dp"
+	        android:paddingBottom="5dp" />
+	
+	</LinearLayout>
 
-    <TextView
-        android:id="@+id/textViewRadioItem"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textStyle="bold" />
-
-</LinearLayout>
+</FrameLayout>

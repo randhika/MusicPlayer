@@ -149,7 +149,6 @@
 	<string name="enableBackDoublePressToQuitAppSummary">Use double tap on back button to close the app.</string>
 	<string name="showRelativePathUnderBaseDirectory">Relative path</string>
 	<string name="showRelativePathUnderBaseDirectorySummary">Show relative path for folders under base directory.</string>
-	<string name="darkTheme">Dark theme</string>
 	<string name="translucentStatusBar">Translucent status bar</string>
 	<string name="translucentNavigationBar">Translucent navigation bar</string>
 	<string name="restartNeeded">Restart needed</string>

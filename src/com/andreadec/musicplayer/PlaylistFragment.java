@@ -38,8 +38,8 @@ public class PlaylistFragment extends MusicPlayerFragment implements OnItemClick
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		if(container==null) return null;
-		View view = inflater.inflate(R.layout.layout_playlist, container, false);
-		listViewPlaylist = (DragSortListView)view.findViewById(R.id.listViewPlaylist);
+		View view = inflater.inflate(R.layout.layout_sortable_list, container, false);
+		listViewPlaylist = (DragSortListView)view.findViewById(R.id.listView);
 		listViewPlaylist.setOnItemClickListener(this);
 		listViewPlaylist.setDropListener(this);
 		listViewPlaylist.setRemoveListener(this);

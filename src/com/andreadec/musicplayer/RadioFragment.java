@@ -35,8 +35,8 @@ public class RadioFragment extends MusicPlayerFragment implements OnItemClickLis
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		if (container == null) return null;
-		View view = inflater.inflate(R.layout.layout_webradio, container, false);
-		listViewRadios = (ListView)view.findViewById(R.id.listViewRadio);
+		View view = inflater.inflate(R.layout.layout_simple_list, container, false);
+		listViewRadios = (ListView)view.findViewById(R.id.listView);
 		listViewRadios.setOnItemClickListener(this);
 		registerForContextMenu(listViewRadios);
 		updateListView();

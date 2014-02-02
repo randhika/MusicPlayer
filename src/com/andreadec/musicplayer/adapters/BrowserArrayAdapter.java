@@ -18,6 +18,7 @@ package com.andreadec.musicplayer.adapters;
 
 import java.io.*;
 import java.util.*;
+
 import android.graphics.*;
 import android.graphics.drawable.Drawable;
 import android.support.v4.util.*;
@@ -53,7 +54,6 @@ public class BrowserArrayAdapter extends MusicListArrayAdapter {
 		else return TYPE_ACTION;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public View getView(int position, View view, ViewGroup parent) {
 		int type = getItemViewType(position);
@@ -62,10 +62,10 @@ public class BrowserArrayAdapter extends MusicListArrayAdapter {
 		if(view==null) {
 			viewHolder = new ViewHolder();
 			if(type==TYPE_ACTION) {
-				view = inflater.inflate(R.layout.folder_item, parent, false);
-				viewHolder.title = (TextView)view.findViewById(R.id.textViewFolderItemFolder);
+				view = inflater.inflate(R.layout.action_item, parent, false);
+				viewHolder.title = (TextView)view.findViewById(R.id.textView);
 				viewHolder.title.setTextColor(view.getResources().getColor(R.color.orange1));
-				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
+				viewHolder.image = (ImageView)view.findViewById(R.id.imageView);
 				viewHolder.image.setImageResource(R.drawable.back);
 			} else if(type==TYPE_DIRECTORY) {
 				view = inflater.inflate(R.layout.folder_item, parent, false);
@@ -75,6 +75,7 @@ public class BrowserArrayAdapter extends MusicListArrayAdapter {
 				viewHolder.title = (TextView)view.findViewById(R.id.textViewSongItemTitle);
 				viewHolder.artist = (TextView)view.findViewById(R.id.textViewSongItemArtist);
 				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
+				viewHolder.card = view.findViewById(R.id.card);
 			}
 		} else {
 			viewHolder = (ViewHolder)view.getTag();
@@ -92,16 +93,12 @@ public class BrowserArrayAdapter extends MusicListArrayAdapter {
 			viewHolder.title.setText(trackNumber + song.getTitle());
 			viewHolder.artist.setText(song.getArtist());
 			if(song.equals(playingSong)) {
-				view.setBackgroundResource(R.color.playingItemBackground);
+				viewHolder.card.setBackgroundResource(R.drawable.card_playing);
 				viewHolder.image.setImageResource(R.drawable.play_orange);
-				viewHolder.artist.setTextColor(playingTextColor);
-				viewHolder.title.setTextColor(playingTextColor);
 			} else {
-				view.setBackgroundDrawable(null);
+				viewHolder.card.setBackgroundResource(R.drawable.card);
 				if(showSongImage) {
 					viewHolder.image.setImageDrawable(songImage);
-					viewHolder.artist.setTextColor(defaultTextColor);
-					viewHolder.title.setTextColor(defaultTextColor);
 					if(song.hasImage()) {
 						Bitmap image;
 						synchronized(imagesCache) {
@@ -123,5 +120,6 @@ public class BrowserArrayAdapter extends MusicListArrayAdapter {
 		public TextView artist;
 		public TextView title;
 		public ImageView image;
+		public View card;
 	}
 }

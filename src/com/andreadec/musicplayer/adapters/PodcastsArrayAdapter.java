@@ -20,30 +20,17 @@ import java.util.*;
 
 import com.andreadec.musicplayer.*;
 
-import android.content.*;
 import android.graphics.*;
-import android.preference.*;
 import android.view.*;
 import android.widget.*;
 
 public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 	private PodcastItem currentPodcastItem;
 	private final static int TYPE_ACTION=0, TYPE_PODCAST=1, TYPE_PODCAST_ITEM=2;
-	private final int iconNew, iconDownload, iconSave;
 	
 	public PodcastsArrayAdapter(MainActivity activity, ArrayList<Object> values, PodcastItem currentPodcastItem) {
 		super(activity, values);
 		this.currentPodcastItem = currentPodcastItem;
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
-		if(preferences.getBoolean(Constants.PREFERENCE_DARKTHEME, Constants.DEFAULT_DARKTHEME)) {
-			iconNew = R.drawable.accept;
-			iconDownload = R.drawable.download;
-			iconSave = R.drawable.save;
-		} else {
-			iconNew = R.drawable.accept_dark;
-			iconDownload = R.drawable.download_dark;
-			iconSave = R.drawable.save_dark;
-		}
 	}
 	
 	@Override
@@ -57,8 +44,7 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 		else if(value instanceof Podcast) return TYPE_PODCAST;
 		else return TYPE_PODCAST_ITEM;
 	}
-	
-	@SuppressWarnings("deprecation")
+
 	@Override
 	public View getView(int position, View view, ViewGroup parent) {
 		Object value = values.get(position);
@@ -82,6 +68,7 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 				viewHolder.textStatus = (TextView)view.findViewById(R.id.textViewPodcastStatus);
 				viewHolder.image = (ImageView)view.findViewById(R.id.imageViewItemImage);
 				viewHolder.imageStatus = (ImageView)view.findViewById(R.id.imageViewPodcastStatus);
+				viewHolder.card = view.findViewById(R.id.card);
 			}
 		} else {
 			viewHolder = (ViewHolder)view.getTag();
@@ -116,28 +103,22 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 			viewHolder.textStatus.setText(podcastItem.getStatusString());
 			switch(podcastItem.getStatus()) {
 			case PodcastItem.STATUS_NEW:
-				viewHolder.imageStatus.setImageResource(iconNew);
+				viewHolder.imageStatus.setImageResource(R.drawable.accept);
 				break;
 			case PodcastItem.STATUS_DOWNLOADING:
-				viewHolder.imageStatus.setImageResource(iconDownload);
+				viewHolder.imageStatus.setImageResource(R.drawable.download);
 				break;
 			case PodcastItem.STATUS_DOWNLOADED:
-				viewHolder.imageStatus.setImageResource(iconSave);
+				viewHolder.imageStatus.setImageResource(R.drawable.save);
 				break;
 			default:
 				viewHolder.imageStatus.setImageDrawable(null);
 			}
 			if(podcastItem.equals(currentPodcastItem)) {
-				view.setBackgroundResource(R.color.playingItemBackground);
+				viewHolder.card.setBackgroundResource(R.drawable.card_playing);
 				viewHolder.image.setImageResource(R.drawable.play_orange);
-				viewHolder.textTitle.setTextColor(playingTextColor);
-				viewHolder.textInfo.setTextColor(playingTextColor);
-				viewHolder.textStatus.setTextColor(playingTextColor);
 			} else {
-				view.setBackgroundDrawable(null);
-				viewHolder.textTitle.setTextColor(defaultTextColor);
-				viewHolder.textInfo.setTextColor(defaultTextColor);
-				viewHolder.textStatus.setTextColor(defaultTextColor);
+				viewHolder.card.setBackgroundResource(R.drawable.card);
 				viewHolder.image.setImageResource(R.drawable.audio);
 			}
 		}
@@ -152,5 +133,6 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 		public TextView textStatus;
 		public ImageView image;
 		public ImageView imageStatus;
+		public View card;
 	}
 }
