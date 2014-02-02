@@ -135,7 +135,6 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
     	ArrayList<File> browsingSubdirs = currentDirectory.getSubdirs();
         ArrayList<BrowserSong> browsingSongs = currentDirectory.getSongs();
         ArrayList<Object> items = new ArrayList<Object>();
-        //items.add(new Action(Action.ACTION_GO_BACK, currentDirectory.getDirectory().getAbsolutePath())); // Add the button to come back to the parent directory
         items.add(new Action(Action.ACTION_GO_BACK, getCurrentDirectoryName(currentDirectory)));
         items.addAll(browsingSubdirs);
         items.addAll(browsingSongs);

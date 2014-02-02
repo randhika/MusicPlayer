@@ -77,7 +77,10 @@ public class PodcastItemDownloaderService extends IntentService {
 		notificationBuilder.setContentText(getResources().getString(R.string.podcastDownloading, title));
 		notificationManager.notify(Constants.NOTIFICATION_PODCAST_ITEM_DOWNLOAD_ONGOING, notificationBuilder.build());
 
-		String filename = podcastsDirectory+"/"+UUID.randomUUID().toString();
+		String filename;
+		do {
+			filename = podcastsDirectory+"/"+UUID.randomUUID().toString();
+		} while(new File(filename).exists()); // To avoid accidentally override an already existing file
 		Intent intentCompleted = new Intent("com.andreadec.musicplayer.podcastdownloadcompleted");
 		
 		HttpURLConnection httpConnection = null;

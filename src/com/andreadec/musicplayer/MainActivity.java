@@ -35,7 +35,6 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.*;
 import android.content.DialogInterface.OnCancelListener;
-import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.view.*;
@@ -48,7 +47,6 @@ import android.widget.SeekBar.*;
 
 public class MainActivity extends FragmentActivity implements OnClickListener, OnSeekBarChangeListener {
 	public final static int PAGE_BROWSER=0, PAGE_PLAYLISTS=1, PAGE_RADIOS=2, PAGE_PODCASTS=3;
-	public ColorStateList defaultTextViewColor;
 	
 	private TextView textViewArtist, textViewTitle, textViewTime;
 	private ImageButton imageButtonPrevious, imageButtonPlayPause, imageButtonNext, imageButtonToggleExtendedMenu;
@@ -210,9 +208,6 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         seekBar.setOnSeekBarChangeListener(this);
         seekBar.setClickable(false);
         textViewTime.setOnClickListener(this);
-        
-        defaultTextViewColor = textViewTitle.getTextColors();
-        
         
         showSongImage = preferences.getBoolean(Constants.PREFERENCE_SHOWSONGIMAGE, Constants.DEFAULT_SHOWSONGIMAGE);
         imagesCache = new LruCache<String,Bitmap>(Constants.IMAGES_CACHE_SIZE);
