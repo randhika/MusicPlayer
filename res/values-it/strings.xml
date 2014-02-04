@@ -56,7 +56,7 @@
 	<string name="stopPlayingWhenHeadsetDisconnected">Interrompi riproduzione quando gli auricolari vengono scollegati</string>
 	<string name="stopPlayingWhenHeadsetDisconnectedSummary">Interrompi la riproduzione quando gli auricolari vengono scollegati.</string>
 	<string name="openLastSongOnStart">Riapri ultima canzone</string>
-	<string name="disableLockScreenSummary">Non mostra la schermata di sblocco quando si riaccende lo schermo. Per applicare la modifica è necessario riavviare l\'applicazione.</string>
+	<string name="disableLockScreenSummary">Non mostra la schermata di sblocco quando si riaccende lo schermo.</string>
 	<string name="startingOptions">Opzioni di avvio</string>
 	<string name="openLastSongOnStartSummary">All\'avvio riapri l\'ultima canzone riprodotta.</string>
 	<string name="disableLockScreen">Disabilita schermata di sblocco</string>

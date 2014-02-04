@@ -56,7 +56,7 @@
 	<string name="stopPlayingWhenHeadsetDisconnected">Stop when headset disconnected</string>
 	<string name="stopPlayingWhenHeadsetDisconnectedSummary">Stop playing when headset is disconnected.</string>
 	<string name="disableLockScreen">Disable keyguard</string>
-	<string name="disableLockScreenSummary">Don\'t show keyguard when the application is foreground and screen turns on. To apply this you need to restart the application.</string>
+	<string name="disableLockScreenSummary">Don\'t show keyguard when the application is foreground and screen turns on.</string>
 	<string name="startingOptions">Starting options</string>
 	<string name="openLastSongOnStart">Open last song on startup</string>
 	<string name="openLastSongOnStartSummary">Open last played song when application starts.</string>

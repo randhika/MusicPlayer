@@ -400,7 +400,7 @@ public class MusicService extends Service implements OnCompletionListener {
 	public void previousItem(boolean noRestart) {
 		if(currentPlayingItem==null) return;
 		
-		if(isPlaying() && !noRestart && getCurrentPosition()>2000) {
+		if(!noRestart && getCurrentPosition()>2000) {
 			playItem(currentPlayingItem);
 			return;
 		}
