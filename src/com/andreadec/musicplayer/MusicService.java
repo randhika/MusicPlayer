@@ -18,7 +18,7 @@ package com.andreadec.musicplayer;
 
 import java.io.*;
 import java.util.*;
-
+import android.annotation.SuppressLint;
 import android.app.*;
 import android.content.*;
 import android.graphics.*;
@@ -31,7 +31,10 @@ import android.support.v4.app.*;
 import android.telephony.*;
 import android.view.KeyEvent;
 
+@SuppressLint("NewApi")
 public class MusicService extends Service implements OnCompletionListener {
+	private final static int METADATA_KEY_ARTWORK = 100;
+	
 	private final IBinder musicBinder = new MusicBinder();	
 	private NotificationManager notificationManager;
 	private Notification notification;
@@ -61,6 +64,9 @@ public class MusicService extends Service implements OnCompletionListener {
 	
 	private ShakeListener shakeListener;
 	
+	private Bitmap icon;
+	private RemoteControlClient remoteControlClient;
+	
 	/**
 	 * Called when the service is created.
 	 */
@@ -70,10 +76,6 @@ public class MusicService extends Service implements OnCompletionListener {
 		telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		phoneStateListener = new MusicPhoneStateListener();
 		notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-		
-		// Inizialize the audio manager
-		audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-		mediaButtonReceiverComponent = new ComponentName(getPackageName(), MediaButtonReceiver.class.getName());
 		
 		// Initialize pending intents
 		previousPendingIntent = PendingIntent.getBroadcast(this, 0, new Intent("com.andreadec.musicplayer.previous"), 0);
@@ -115,11 +117,27 @@ public class MusicService extends Service implements OnCompletionListener {
 			shakeListener.enable();
 		}
 		
-		
-		updateNotificationMessage();
 		telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE); // Start listen for telephony events
 		
+		// Inizialize the audio manager
+		audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		mediaButtonReceiverComponent = new ComponentName(getPackageName(), MediaButtonReceiver.class.getName());
 		audioManager.registerMediaButtonEventReceiver(mediaButtonReceiverComponent);
+		audioManager.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+		
+		// Initialize remote control client
+		if(Build.VERSION.SDK_INT>=14) {
+			icon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+			Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+			mediaButtonIntent.setComponent(mediaButtonReceiverComponent);
+			PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, mediaButtonIntent, 0);
+			
+			remoteControlClient = new RemoteControlClient(mediaPendingIntent);
+			remoteControlClient.setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE | RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS | RemoteControlClient.FLAG_KEY_MEDIA_NEXT);
+			audioManager.registerRemoteControlClient(remoteControlClient);
+		}
+		
+		updateNotificationMessage();
 		
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction("com.andreadec.musicplayer.previous");
@@ -232,7 +250,9 @@ public class MusicService extends Service implements OnCompletionListener {
 		editor.putString(Constants.PREFERENCE_LASTDIRECTORY, ((MusicPlayerApplication)getApplication()).getCurrentDirectory().getDirectory().getAbsolutePath());
 		editor.commit();
 		
+		if(Build.VERSION.SDK_INT>=14) audioManager.unregisterRemoteControlClient(remoteControlClient);
 		audioManager.unregisterMediaButtonEventReceiver(mediaButtonReceiverComponent);
+		audioManager.abandonAudioFocus(null);
 		shakeListener.disable();
 		mediaPlayer.release();
 		stopForeground(true);
@@ -333,8 +353,33 @@ public class MusicService extends Service implements OnCompletionListener {
 	}	
 	
 	
-	/* Updates the notification. */
+	/* Updates the notification and the remote control client. */
 	private void updateNotificationMessage() {
+		/* Update remote control client */
+		if(Build.VERSION.SDK_INT>=14) {
+			if(currentPlayingItem==null) {
+				remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+			} else {
+				if(isPlaying()) {
+					remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+				} else {
+					remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
+				}
+				RemoteControlClient.MetadataEditor metadataEditor = remoteControlClient.editMetadata(true);
+				metadataEditor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, currentPlayingItem.getTitle());
+				metadataEditor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, currentPlayingItem.getArtist());
+				metadataEditor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, currentPlayingItem.getArtist());
+				metadataEditor.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION, getDuration());
+				if(currentPlayingItem.hasImage()) {
+					metadataEditor.putBitmap(METADATA_KEY_ARTWORK, currentPlayingItem.getImage());
+				} else {
+					metadataEditor.putBitmap(METADATA_KEY_ARTWORK, icon.copy(icon.getConfig(), false));
+				}
+				metadataEditor.apply();
+			}
+		}
+		
+		/* Update notification */
 		NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
 		notificationBuilder.setSmallIcon(R.drawable.audio_white);
 		notificationBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
@@ -531,7 +576,6 @@ public class MusicService extends Service implements OnCompletionListener {
 	public static class MediaButtonReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			System.out.println(intent.getAction());
 			KeyEvent event = (KeyEvent)intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
 			if(event.getAction()!=KeyEvent.ACTION_DOWN) return;
 			switch(event.getKeyCode()) {
