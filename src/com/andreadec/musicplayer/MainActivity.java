@@ -215,7 +215,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         serviceIntent = new Intent(this, MusicService.class);
         startService(serviceIntent); // Starts the service if it is not running
         
-        openPage(PAGE_BROWSER);
+        if(preferences.getBoolean(Constants.PREFERENCE_OPENLASTPAGEONSTART, Constants.DEFAULT_OPENLASTPAGEONSTART)) {
+        	openPage(preferences.getInt(Constants.PREFERENCE_LASTPAGE, Constants.DEFAULT_LASTPAGE));
+        } else {
+        	openPage(PAGE_BROWSER);
+        }
         loadSongFromIntent();
     }
     
@@ -475,6 +479,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     @Override
     public void onDestroy() {
     	super.onDestroy();
+    	if(preferences.getBoolean(Constants.PREFERENCE_OPENLASTPAGEONSTART, Constants.DEFAULT_OPENLASTPAGEONSTART)) {
+    		SharedPreferences.Editor editor = preferences.edit();
+    		editor.putInt(Constants.PREFERENCE_LASTPAGE, currentPage);
+    		editor.commit();
+    	}
     	unbindService(musicConnection); // Unbinds from the service
     }
     

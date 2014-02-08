@@ -58,10 +58,12 @@
 	<string name="disableLockScreen">Disable keyguard</string>
 	<string name="disableLockScreenSummary">Don\'t show keyguard when the application is foreground and screen turns on.</string>
 	<string name="startingOptions">Starting options</string>
-	<string name="openLastSongOnStart">Open last song on startup</string>
+	<string name="openLastSongOnStart">Open last played song</string>
 	<string name="openLastSongOnStartSummary">Open last played song when application starts.</string>
 	<string name="saveSongPosition">Save song position</string>
 	<string name="saveSongPositionSummary">Save the position of the last song played.</string>
+	<string name="openLastPageOnStart">Open last page</string>
+	<string name="openLastPageOnStartSummary">Open last used page (browser, playlists, radios or podcasts) when application starts.</string>
 	<string name="appearance">Appearance</string>
 	<string name="songsSorting">Songs sorting</string>
 	<string name="songsSortingSummary">Choose how songs are sorted in the browser.</string>

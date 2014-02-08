@@ -62,6 +62,8 @@
 	<string name="disableLockScreen">Disabilita schermata di sblocco</string>
 	<string name="saveSongPosition">Salva posizione brano</string>
 	<string name="saveSongPositionSummary">Salva la posizione raggiunta nell\'ultimo brano prima della chiusura dell\'applicazione.</string>
+	<string name="openLastPageOnStart">Riapri ultima pagina</string>
+	<string name="openLastPageOnStartSummary">All\'avvio riapri l\'ultima pagina utilizzata (browser, playlist, radio o podcast).</string>
 	<string name="appearance">Aspetto</string>
 	<string name="songsSorting">Ordinamento brani</string>
 	<string name="songsSortingSummary">Imposta l\'ordine in cui vengono visualizzati i brani nel browser.</string>

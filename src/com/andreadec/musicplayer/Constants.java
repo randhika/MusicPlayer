@@ -23,6 +23,7 @@ public class Constants {
 	public final static String PREFERENCE_LASTPLAYINGSONG = "lastPlayingSong";
 	public final static String PREFERENCE_LASTSONGPOSITION = "lastSongPosition";
 	public final static String PREFERENCE_LASTPLAYINGSONGFROMPLAYLISTID = "lastPlyaingSongFromPlaylistId";
+	public final static String PREFERENCE_LASTPAGE = "lastPage";
 	public final static String PREFERENCE_SHUFFLE = "shuffle";
 	public final static String PREFERENCE_REPEAT = "repeat";
 	public final static String PREFERENCE_REPEATALL = "repeatAll";
@@ -38,6 +39,7 @@ public class Constants {
 	public final static String PREFERENCE_STOPPLAYINGWHENHEADSETDISCONNECTED = "stopPlayingWhenHeadsetDisconnected";
 	public final static String PREFERENCE_OPENLASTSONGONSTART = "openLastSongOnStart";
 	public final static String PREFERENCE_SAVESONGPOSITION = "saveSongPosition";
+	public final static String PREFERENCE_OPENLASTPAGEONSTART = "openLastPageOnStart";
 	public final static String PREFERENCE_RESTARTPLAYBACKAFTERPHONECALL = "restartPlaybackAfterPhoneCall";
 	public final static String PREFERENCE_PODCASTSDIRECTORY = "podcastsDirectory";
 	public final static String PREFERENCE_SHOWSONGIMAGE = "showSongImage";
@@ -72,6 +74,8 @@ public class Constants {
 	public final static boolean DEFAULT_STOPPLAYINGWHENHEADSETDISCONNECTED = false;
 	public final static boolean DEFAULT_OPENLASTSONGONSTART = false;
 	public final static String DEFAULT_LASTPLAYINGSONG = null;
+	public final static boolean DEFAULT_OPENLASTPAGEONSTART = false;
+	public final static int DEFAULT_LASTPAGE = 0;
 	public final static int DEFAULT_LASTPLAYINGSONGFROMPLAYLISTID = -1;
 	public final static boolean DEFAULT_SAVESONGPOSITION = false;
 	public final static int DEFAULT_LASTSONGPOSITION = 0;
