@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Andrea De Cesare
+ * Copyright 2013-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class Podcast {
 	private long id;
 	private String name;
 	private String url;
-	private ArrayList<PodcastItem> podcastItems;
+	private ArrayList<PodcastEpisode> episodes;
 	private byte[] image;
 	
 	public Podcast(long id, String url, String name, byte[] image) {
@@ -43,7 +43,7 @@ public class Podcast {
 	}
 	
 	public void loadItemsFromDatabase() {
-		podcastItems = new ArrayList<PodcastItem>();
+		episodes = new ArrayList<PodcastEpisode>();
 		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
 		SQLiteDatabase db = podcastsDatabase.getReadableDatabase();
 		Cursor cursor = db.rawQuery("SELECT idItem, url, title, status, filename, pubDate, duration, type FROM ItemsInPodcast WHERE idPodcast="+id+" ORDER BY pubDate DESC", null);
@@ -56,40 +56,40 @@ public class Podcast {
 			long pubDate = cursor.getLong(5);
 			String duration = cursor.getString(6);
 			String type = cursor.getString(7);
-			PodcastItem item = new PodcastItem(itemUrl, filename, title, itemId, this, status, pubDate, duration, type);
-			podcastItems.add(item);
+			PodcastEpisode item = new PodcastEpisode(itemUrl, filename, title, itemId, this, status, pubDate, duration, type);
+			episodes.add(item);
 		}
 		cursor.close();
 		db.close();
 	}
 	
-	public void addItem(SQLiteDatabase db, PodcastItem item) {
+	public void addItem(SQLiteDatabase db, PodcastEpisode episode) {
 		ContentValues values = new ContentValues();
 		values.put("idPodcast", id);
-		values.put("idItem", item.getId());
-		values.put("url", item.getUrl());
-		values.put("title", item.getTitle());
-		values.put("status", item.getStatus());
-		values.put("pubDate", item.getPubDate());
-		values.put("duration", item.getDuration());
-		values.put("type", item.getType());
+		values.put("idItem", episode.getId());
+		values.put("url", episode.getUrl());
+		values.put("title", episode.getTitle());
+		values.put("status", episode.getStatus());
+		values.put("pubDate", episode.getPubDate());
+		values.put("duration", episode.getDuration());
+		values.put("type", episode.getType());
 		try {
 			db.insertOrThrow("ItemsInPodcast", null, values);
 		} catch(Exception e) {}
 	}
 	
-	public void deleteItem(PodcastItem item) {
-		item.deleteDownloadedFile();
+	public void deleteEpisode(PodcastEpisode episode) {
+		episode.deleteDownloadedFile();
 		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
 		SQLiteDatabase db = podcastsDatabase.getWritableDatabase();
-		db.delete("ItemsInPodcast", "idItem='"+item.getId()+"'", null);
+		db.delete("ItemsInPodcast", "idItem='"+episode.getId()+"'", null);
 		db.close();
-		podcastItems.remove(item);
+		episodes.remove(episode);
 	}
 	
 	public void remove() {
-		for(PodcastItem item : podcastItems) {
-			item.deleteDownloadedFile();
+		for(PodcastEpisode episode : episodes) {
+			episode.deleteDownloadedFile();
 		}
 		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
 		SQLiteDatabase db = podcastsDatabase.getWritableDatabase();
@@ -138,7 +138,7 @@ public class Podcast {
 		}
 	}
 	
-	public static void deleteDownloadedPodcasts(Podcast podcast) {
+	public static void deleteEpisodes(Podcast podcast, boolean downloadedOnly) {
 		ArrayList<Podcast> podcasts;
 		if(podcast==null) { // Remove downloaded items from all podcasts
 			podcasts = Podcast.getPodcasts();
@@ -146,14 +146,28 @@ public class Podcast {
 			podcasts = new ArrayList<Podcast>();
 			podcasts.add(podcast);
 		}
-		deleteDownloadedPodcasts(podcasts);
+		if(downloadedOnly) deleteDownloadedEpisodes(podcasts);
+		else deleteEpisodes(podcasts);
 	}
-	private static void deleteDownloadedPodcasts(ArrayList<Podcast> podcasts) {
+	private static void deleteEpisodes(ArrayList<Podcast> podcasts) {
+		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
+		SQLiteDatabase db = podcastsDatabase.getWritableDatabase();
+		
 		for(Podcast podcast : podcasts) {
-			for(PodcastItem item : podcast.getPodcastItems()) {
-				if(item.getStatus()==PodcastItem.STATUS_DOWNLOADED) {
-					item.deleteDownloadedFile();
-					item.setStatus(PodcastItem.STATUS_NEW);
+			for(PodcastEpisode episode : podcast.getEpisodes()) {
+				episode.deleteDownloadedFile();
+			}
+			db.delete("ItemsInPodcast", "idPodcast=" + podcast.id, null);
+		}
+		
+		db.close();
+	}
+	private static void deleteDownloadedEpisodes(ArrayList<Podcast> podcasts) {
+		for(Podcast podcast : podcasts) {
+			for(PodcastEpisode episode : podcast.getEpisodes()) {
+				if(episode.getStatus()==PodcastEpisode.STATUS_DOWNLOADED) {
+					episode.deleteDownloadedFile();
+					episode.setStatus(PodcastEpisode.STATUS_NEW);
 				}
 			}
 		}
@@ -163,12 +177,12 @@ public class Podcast {
 		PodcastParser parser = new PodcastParser();
 		boolean ok = parser.parse(url);
 		if(!ok) return false;
-		ArrayList<PodcastItem> items = parser.getPodcastItems();
+		ArrayList<PodcastEpisode> items = parser.getEpisodes();
 		
 		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
 		SQLiteDatabase db = podcastsDatabase.getWritableDatabase();
 		
-		for(PodcastItem item : items) {
+		for(PodcastEpisode item : items) {
 			item.setPodcast(this);
 			addItem(db, item);
 		}
@@ -191,8 +205,8 @@ public class Podcast {
 		return name;
 	}
 	
-	public ArrayList<PodcastItem> getPodcastItems() {
-		return podcastItems;
+	public ArrayList<PodcastEpisode> getEpisodes() {
+		return episodes;
 	}
 	
 	public byte[] getImageBytes() {

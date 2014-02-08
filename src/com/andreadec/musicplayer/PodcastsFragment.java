@@ -74,9 +74,9 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 		if(item instanceof Podcast) {
 			menu.setHeaderTitle(((Podcast)item).getName());
 			menu.removeItem(R.id.menu_edit);
-		} else if(item instanceof PodcastItem) {
-			PodcastItem podcastItem = (PodcastItem)item;
-			menu.setHeaderTitle(podcastItem.getTitle());
+		} else if(item instanceof PodcastEpisode) {
+			PodcastEpisode podcastEpisode = (PodcastEpisode)item;
+			menu.setHeaderTitle(podcastEpisode.getTitle());
 			menu.removeItem(R.id.menu_edit);
 		}
 	}
@@ -92,11 +92,11 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 				deletePodcast(podcast);
 				return true;
 			}
-		} else if(listItem instanceof PodcastItem) {
+		} else if(listItem instanceof PodcastEpisode) {
 			switch (item.getItemId()) {
 			case R.id.menu_delete:
-				PodcastItem podcastItem = (PodcastItem)listItem;
-				podcastItem.getPodcast().deleteItem(podcastItem);
+				PodcastEpisode podcastEpisode = (PodcastEpisode)listItem;
+				podcastEpisode.getPodcast().deleteEpisode(podcastEpisode);
 				updateListView();
 				return true;
 			}
@@ -119,12 +119,12 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 			if(reloadFromDatabase) currentPodcast.loadItemsFromDatabase();
 			items.add(new Action(Action.ACTION_GO_BACK, currentPodcast.getName()));
 			items.add(new Action(Action.ACTION_UPDATE, getResources().getString(R.string.update)));
-			items.addAll(currentPodcast.getPodcastItems());
+			items.addAll(currentPodcast.getEpisodes());
 		}
-		PodcastItem currentPodcastItem = null;
+		PodcastEpisode currentPodcastEpisode = null;
 		MainActivity activity = (MainActivity)getActivity();
-		if(activity.getCurrentPlayingItem() instanceof PodcastItem) currentPodcastItem = (PodcastItem)activity.getCurrentPlayingItem();
-		adapter = new PodcastsArrayAdapter((MainActivity)getActivity(), items, currentPodcastItem);
+		if(activity.getCurrentPlayingItem() instanceof PodcastEpisode) currentPodcastEpisode = (PodcastEpisode)activity.getCurrentPlayingItem();
+		adapter = new PodcastsArrayAdapter((MainActivity)getActivity(), items, currentPodcastEpisode);
 		Parcelable state = listViewPodcasts.onSaveInstanceState();
 		listViewPodcasts.setAdapter(adapter);
 		listViewPodcasts.onRestoreInstanceState(state);
@@ -145,17 +145,17 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 			}
 		} else if(item instanceof Podcast) {
 			openPodcast((Podcast)item);
-		} else if(item instanceof PodcastItem) {
-			PodcastItem podcastItem = (PodcastItem)item;
-			int status = podcastItem.getStatus();
-			if(podcastItem.getStatus()==PodcastItem.STATUS_NEW) {
+		} else if(item instanceof PodcastEpisode) {
+			PodcastEpisode podcastEpisode = (PodcastEpisode)item;
+			int status = podcastEpisode.getStatus();
+			if(podcastEpisode.getStatus()==PodcastEpisode.STATUS_NEW) {
 				if(Utils.isWifiConnected()) {
-					downloadPodcast(podcastItem);
+					downloadEpisode(podcastEpisode);
 				} else {
-					downloadPodcastConfirm(podcastItem);
+					downloadEpisodeConfirm(podcastEpisode);
 				}
-			} else if(status==PodcastItem.STATUS_DOWNLOADED) {
-				((MainActivity)getActivity()).playItem(podcastItem);
+			} else if(status==PodcastEpisode.STATUS_DOWNLOADED) {
+				((MainActivity)getActivity()).playItem(podcastEpisode);
 				updateListView();
 			}
 		}
@@ -166,20 +166,20 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 		updateListView();
 	}
 	
-	private void downloadPodcastConfirm(final PodcastItem podcastItem) {
+	private void downloadEpisodeConfirm(final PodcastEpisode episode) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle(R.string.podcast);
 		builder.setMessage(R.string.podcastDownloadNoWifiConfirm);
 		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
-				downloadPodcast(podcastItem);
+				downloadEpisode(episode);
 			}
 		});
 		builder.setNegativeButton(R.string.no, null);
 		builder.show();
 	}
 	
-	private void downloadPodcast(PodcastItem podcastItem) {
+	private void downloadEpisode(PodcastEpisode episode) {
 		String podcastsDirectory = preferences.getString(Constants.PREFERENCE_PODCASTSDIRECTORY, Podcast.DEFAULT_PODCASTS_PATH);
 		
 		if(!new File(podcastsDirectory).exists()) {
@@ -187,12 +187,12 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 			return;
 		}
 		
-		podcastItem.setStatus(PodcastItem.STATUS_DOWNLOADING);
-		Intent downloaderIntent = new Intent(getActivity(), PodcastItemDownloaderService.class);
-		downloaderIntent.putExtra("idItem", podcastItem.getId());
-		downloaderIntent.putExtra("title", podcastItem.getTitle());
-		downloaderIntent.putExtra("url", podcastItem.getUrl());
-		downloaderIntent.putExtra("type", podcastItem.getType());
+		episode.setStatus(PodcastEpisode.STATUS_DOWNLOADING);
+		Intent downloaderIntent = new Intent(getActivity(), PodcastEpisodeDownloaderService.class);
+		downloaderIntent.putExtra("idItem", episode.getId());
+		downloaderIntent.putExtra("title", episode.getTitle());
+		downloaderIntent.putExtra("url", episode.getUrl());
+		downloaderIntent.putExtra("type", episode.getType());
 		downloaderIntent.putExtra("podcastsDirectory", podcastsDirectory);
 		getActivity().startService(downloaderIntent);
 		updateListView();
@@ -272,18 +272,37 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 		builder.show();
 	}
 	
-	public void removeDownloadedPodcasts() {
+	public void removeAllEpisodes() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setTitle(R.string.removeDownloadedPodcasts);
+		builder.setTitle(R.string.removeAllEpisodes);
 		if(currentPodcast==null) {
-			builder.setMessage(R.string.removeAllDownloadedPodcastsConfirm);
+			builder.setMessage(R.string.removeAllEpisodesConfirm);
 		} else {
-			builder.setMessage(getActivity().getResources().getString(R.string.removeDownloadedPodcastItems, currentPodcast.getName()));
+			builder.setMessage(getActivity().getResources().getString(R.string.removeEpisodesConfirm, currentPodcast.getName()));
 		}
 		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
-				Podcast.deleteDownloadedPodcasts(currentPodcast);
-				Toast.makeText(getActivity(), R.string.removeDownloadedPodcastsCompletion, Toast.LENGTH_SHORT).show();
+				Podcast.deleteEpisodes(currentPodcast, false);
+				Toast.makeText(getActivity(), R.string.removeEpisodesCompletion, Toast.LENGTH_SHORT).show();
+				updateListView(true);
+			}
+		});
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
+	}
+	
+	public void removeDownloadedEpisodes() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.removeDownloadedEpisodes);
+		if(currentPodcast==null) {
+			builder.setMessage(R.string.removeAllDownloadedEpisodesConfirm);
+		} else {
+			builder.setMessage(getActivity().getResources().getString(R.string.removeDownloadedEpisodesConfirm, currentPodcast.getName()));
+		}
+		builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				Podcast.deleteEpisodes(currentPodcast, true);
+				Toast.makeText(getActivity(), R.string.removeDownloadedEpisodesCompletion, Toast.LENGTH_SHORT).show();
 				updateListView(true);
 			}
 		});
@@ -366,12 +385,12 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 
 	@Override
 	public void gotoPlayingItemPosition(PlayableItem playingItem) {
-		PodcastItem playingPodcastItem = (PodcastItem)playingItem;
-		openPodcast(playingPodcastItem.getPodcast());
+		PodcastEpisode playingEpisode = (PodcastEpisode)playingItem;
+		openPodcast(playingEpisode.getPodcast());
 		for(int i=0; i<adapter.getCount(); i++) {
 			Object item = adapter.getItem(i);
-			if(item instanceof PodcastItem) {
-				if(item.equals(playingPodcastItem)) {
+			if(item instanceof PodcastEpisode) {
+				if(item.equals(playingEpisode)) {
 					final int position = i;
 					listViewPodcasts.post(new Runnable() {
 						@Override

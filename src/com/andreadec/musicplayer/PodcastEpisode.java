@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Andrea De Cesare
+ * Copyright 2013-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import android.graphics.Bitmap;
 
 import com.andreadec.musicplayer.database.*;
 
-public class PodcastItem implements PlayableItem {
+public class PodcastEpisode implements PlayableItem {
 	public static final int STATUS_NEW=0, STATUS_DOWNLOADING=1, STATUS_DOWNLOADED=2;
 	
 	private String id;
@@ -39,7 +39,7 @@ public class PodcastItem implements PlayableItem {
 	private String duration;
 	private String type;
 	
-	public PodcastItem(String url, String filename, String title, String id, Podcast podcast, int status, long pubDate, String duration, String type) {
+	public PodcastEpisode(String url, String filename, String title, String id, Podcast podcast, int status, long pubDate, String duration, String type) {
 		this.id = id;
 		this.url = url;
 		this.title = title;
@@ -99,7 +99,7 @@ public class PodcastItem implements PlayableItem {
 	
 	public static void setDownloadedFile(String podcastItemId, String filename) {
 		ContentValues values = new ContentValues();
-		values.put("status", PodcastItem.STATUS_DOWNLOADED);
+		values.put("status", PodcastEpisode.STATUS_DOWNLOADED);
 		values.put("filename", filename);
 		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
 		SQLiteDatabase db = podcastsDatabase.getWritableDatabase();
@@ -109,7 +109,7 @@ public class PodcastItem implements PlayableItem {
 	
 	public static void setDownloadCanceled(String podcastItemId) {
 		ContentValues values = new ContentValues();
-		values.put("status", PodcastItem.STATUS_NEW);
+		values.put("status", PodcastEpisode.STATUS_NEW);
 		PodcastsDatabase podcastsDatabase = new PodcastsDatabase();
 		SQLiteDatabase db = podcastsDatabase.getWritableDatabase();
 		db.update("ItemsInPodcast", values, "idItem=\""+podcastItemId+"\"", null);
@@ -208,8 +208,8 @@ public class PodcastItem implements PlayableItem {
 	
 	@Override
 	public boolean equals(Object o) {
-		if(!(o instanceof PodcastItem)) return false;
-		PodcastItem p2 = (PodcastItem)o;
+		if(!(o instanceof PodcastEpisode)) return false;
+		PodcastEpisode p2 = (PodcastEpisode)o;
 		return p2.getId().equals(getId());
 	}
 }

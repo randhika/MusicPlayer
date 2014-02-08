@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Andrea De Cesare
+ * Copyright 2013-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import android.app.*;
 import android.content.*;
 import android.support.v4.app.*;
 
-public class PodcastItemDownloaderService extends IntentService {
+public class PodcastEpisodeDownloaderService extends IntentService {
 	private final static int NOTIFICATION_INTERVAL = 1000; // Milliseconds
 	private final static String STOP_DOWNLOAD_INTENT = "com.andreadec.musicplayer.stopdownload";
 	private NotificationManager notificationManager;
@@ -38,7 +38,7 @@ public class PodcastItemDownloaderService extends IntentService {
 	private String lengthString;
 	private boolean downloadInProgress = false;
 	
-	public PodcastItemDownloaderService() {
+	public PodcastEpisodeDownloaderService() {
 		super("PodcastItemDownloader");
 	}
 	
@@ -113,13 +113,13 @@ public class PodcastItemDownloaderService extends IntentService {
 	        }
 	        
 	        intentCompleted.putExtra("success", true);
-			PodcastItem.setDownloadedFile(idItem, filename);
+			PodcastEpisode.setDownloadedFile(idItem, filename);
 			
 			output.flush();
 		    output.close();
 		} catch(Exception e) {
 			new File(filename).delete();
-        	PodcastItem.setDownloadCanceled(idItem);
+			PodcastEpisode.setDownloadCanceled(idItem);
 			intentCompleted.putExtra("success", false);
 			intentCompleted.putExtra("reason", e.getMessage());
 			showErrorNotification(e.getMessage());

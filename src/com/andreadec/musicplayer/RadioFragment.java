@@ -157,7 +157,7 @@ public class RadioFragment extends MusicPlayerFragment implements OnItemClickLis
 		Radio playingRadio = (Radio)playingItem;
 		for(int i=0; i<adapter.getCount(); i++) {
 			Object item = adapter.getItem(i);
-			if(item instanceof PodcastItem) {
+			if(item instanceof Radio) {
 				if(item.equals(playingRadio)) {
 					final int position = i;
 					listViewRadios.post(new Runnable() {

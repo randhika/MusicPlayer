@@ -173,10 +173,14 @@
 	<string name="importExport">Importazione/esportazione</string>
 	<string name="podcastNameError">Deve essere inserito un nome per il podcast!</string>
 	<string name="podcastDirectoryNotExist">La cartella dove scaricare i podcast non esiste. Verifica le impostazioni.</string>
-	<string name="removeDownloadedPodcasts">Elimina podcast scaricati</string>
-	<string name="removeAllDownloadedPodcastsConfirm">Eliminare tutti i podcast scaricati?</string>
-	<string name="removeDownloadedPodcastItems">Eliminare tutti gli episodi scaricati del podcast %1$s?</string>
-	<string name="removeDownloadedPodcastsCompletion">Podcast scaricati eliminati</string>
+	<string name="removeDownloadedEpisodes">Elimina episodi scaricati</string>
+	<string name="removeAllEpisodes">Elimina tutti gli episodi</string>
+	<string name="removeAllEpisodesConfirm">Eliminare tutti gli episodi?</string>
+	<string name="removeEpisodesConfirm">Eliminare tutti gli episodi del podcast %1$s?</string>
+	<string name="removeEpisodesCompletion">Episodi eliminati.</string>
+	<string name="removeAllDownloadedEpisodesConfirm">Eliminare tutti gli episodi scaricati?</string>
+	<string name="removeDownloadedEpisodesConfirm">Eliminare tutti gli episodi scaricati del podcast %1$s?</string>
+	<string name="removeDownloadedEpisodesCompletion">Episodi scaricati eliminati.</string>
 	
 	<!-- Shake sensor -->
 	<string name="shake">Shake</string>

@@ -495,9 +495,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     		menu.findItem(R.id.menu_gotoBaseFolder).setVisible(false);
     	}
     	if(currentPage==PAGE_PODCASTS && !navigationDrawerOpen) {
-    		menu.findItem(R.id.menu_removeDownloadedPodcasts).setVisible(true);
+    		menu.findItem(R.id.menu_removeAllEpisodes).setVisible(true);
+    		menu.findItem(R.id.menu_removeDownloadedEpisodes).setVisible(true);
     	} else {
-    		menu.findItem(R.id.menu_removeDownloadedPodcasts).setVisible(false);
+    		menu.findItem(R.id.menu_removeAllEpisodes).setVisible(false);
+    		menu.findItem(R.id.menu_removeDownloadedEpisodes).setVisible(false);
     	}
     	if(navigationDrawerOpen || musicService==null || musicService.getCurrentPlayingItem()==null) {
     		menu.findItem(R.id.menu_songInfo).setVisible(false);
@@ -533,8 +535,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		case R.id.menu_setAsBaseFolder:
 			setBaseFolder(((MusicPlayerApplication)getApplication()).getCurrentDirectory().getDirectory());
 			return true;
-		case R.id.menu_removeDownloadedPodcasts:
-			((PodcastsFragment)currentFragment).removeDownloadedPodcasts();
+		case R.id.menu_removeAllEpisodes:
+			((PodcastsFragment)currentFragment).removeAllEpisodes();
+			return true;
+		case R.id.menu_removeDownloadedEpisodes:
+			((PodcastsFragment)currentFragment).removeDownloadedEpisodes();
 			return true;
 		case R.id.menu_preferences:
 			startActivity(new Intent(this, PreferencesActivity.class));
@@ -653,7 +658,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			openPage(PAGE_PLAYLISTS);
 		} else if(playingItem instanceof Radio) {
 			openPage(PAGE_RADIOS);
-		} else if(playingItem instanceof PodcastItem) {
+		} else if(playingItem instanceof PodcastEpisode) {
 			openPage(PAGE_PODCASTS);
 		}
 		currentFragment.gotoPlayingItemPosition(playingItem);

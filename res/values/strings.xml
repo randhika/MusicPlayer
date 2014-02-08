@@ -173,10 +173,14 @@
 	<string name="podcastsDirectorySummary">The directory where podcasts will be downloaded.</string>
 	<string name="podcastNameError">Podcast name can\'t be empty!</string>
 	<string name="podcastDirectoryNotExist">The directory where to save podcasts does not exist. Please check settings.</string>
-	<string name="removeDownloadedPodcasts">Remove downloaded podcasts</string>
-	<string name="removeAllDownloadedPodcastsConfirm">Remove all downloaded podcasts?</string>
-	<string name="removeDownloadedPodcastItems">Remove all downloaded podcast items for %1$s?</string>
-	<string name="removeDownloadedPodcastsCompletion">Downloaded podcasts removed</string>
+	<string name="removeDownloadedEpisodes">Remove downloaded episodes</string>
+	<string name="removeAllEpisodes">Remove all episodes</string>
+	<string name="removeAllEpisodesConfirm">Remove all episodes?</string>
+	<string name="removeEpisodesConfirm">Remove all episodes for %1$s?</string>
+	<string name="removeEpisodesCompletion">Episodes removed.</string>
+	<string name="removeAllDownloadedEpisodesConfirm">Remove all downloaded episodes?</string>
+	<string name="removeDownloadedEpisodesConfirm">Remove all downloaded episodes for %1$s?</string>
+	<string name="removeDownloadedEpisodesCompletion">Downloaded episodes removed.</string>
 	
 	<!-- Shake sensor -->
 	<string name="shake">Shake</string>

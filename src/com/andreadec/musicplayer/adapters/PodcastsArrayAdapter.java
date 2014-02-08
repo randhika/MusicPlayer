@@ -25,12 +25,12 @@ import android.view.*;
 import android.widget.*;
 
 public class PodcastsArrayAdapter extends MusicListArrayAdapter {
-	private PodcastItem currentPodcastItem;
+	private PodcastEpisode currentEpisode;
 	private final static int TYPE_ACTION=0, TYPE_PODCAST=1, TYPE_PODCAST_ITEM=2;
 	
-	public PodcastsArrayAdapter(MainActivity activity, ArrayList<Object> values, PodcastItem currentPodcastItem) {
+	public PodcastsArrayAdapter(MainActivity activity, ArrayList<Object> values, PodcastEpisode currentEpisode) {
 		super(activity, values);
-		this.currentPodcastItem = currentPodcastItem;
+		this.currentEpisode = currentEpisode;
 	}
 	
 	@Override
@@ -91,30 +91,30 @@ public class PodcastsArrayAdapter extends MusicListArrayAdapter {
 			if(podcastImage!=null) {
 				viewHolder.image.setImageBitmap(podcastImage);
 			}
-		} else if(value instanceof PodcastItem) {
-			PodcastItem podcastItem = (PodcastItem)value;
-			viewHolder.textTitle.setText(podcastItem.getTitle());
-			String duration = podcastItem.getDuration();
+		} else if(value instanceof PodcastEpisode) {
+			PodcastEpisode episode = (PodcastEpisode)value;
+			viewHolder.textTitle.setText(episode.getTitle());
+			String duration = episode.getDuration();
 			if(duration!=null) {
 				viewHolder.textInfo.setText(duration);
 			} else {
 				viewHolder.textInfo.setVisibility(View.GONE);
 			}
-			viewHolder.textStatus.setText(podcastItem.getStatusString());
-			switch(podcastItem.getStatus()) {
-			case PodcastItem.STATUS_NEW:
+			viewHolder.textStatus.setText(episode.getStatusString());
+			switch(episode.getStatus()) {
+			case PodcastEpisode.STATUS_NEW:
 				viewHolder.imageStatus.setImageResource(R.drawable.accept);
 				break;
-			case PodcastItem.STATUS_DOWNLOADING:
+			case PodcastEpisode.STATUS_DOWNLOADING:
 				viewHolder.imageStatus.setImageResource(R.drawable.download);
 				break;
-			case PodcastItem.STATUS_DOWNLOADED:
+			case PodcastEpisode.STATUS_DOWNLOADED:
 				viewHolder.imageStatus.setImageResource(R.drawable.save);
 				break;
 			default:
 				viewHolder.imageStatus.setImageDrawable(null);
 			}
-			if(podcastItem.equals(currentPodcastItem)) {
+			if(episode.equals(currentEpisode)) {
 				viewHolder.card.setBackgroundResource(R.drawable.card_playing);
 				viewHolder.image.setImageResource(R.drawable.play_orange);
 			} else {

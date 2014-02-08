@@ -37,8 +37,11 @@
 	<item android:id="@+id/menu_setAsBaseFolder"
 	    android:title="@string/setAsBaseFolder" />
 	
-	<item android:id="@+id/menu_removeDownloadedPodcasts"
-	    android:title="@string/removeDownloadedPodcasts" />
+	<item android:id="@+id/menu_removeAllEpisodes"
+	    android:title="@string/removeAllEpisodes" />
+	
+	<item android:id="@+id/menu_removeDownloadedEpisodes"
+	    android:title="@string/removeDownloadedEpisodes" />
 	
 	<item android:id="@+id/menu_preferences"
 		android:title="@string/preferences"

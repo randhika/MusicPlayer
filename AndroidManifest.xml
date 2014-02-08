@@ -43,7 +43,7 @@
 		<activity android:name=".AboutActivity" android:label="@string/about" />
         <service android:name=".MusicService" />
         <service android:name=".IndexFolderService" />
-        <service android:name=".PodcastItemDownloaderService" />
+        <service android:name=".PodcastEpisodeDownloaderService" />
         <receiver android:name="com.andreadec.musicplayer.MusicService$MediaButtonReceiver">
 			<intent-filter android:priority="1000" >
 				<action android:name="android.intent.action.MEDIA_BUTTON" />               

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Andrea De Cesare
+ * Copyright 2013-2014 Andrea De Cesare
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ public class PodcastParser {
 	private String title;
 	private String link;
 	private String imageUrl;
-	private ArrayList<PodcastItem> podcastItems;
+	private ArrayList<PodcastEpisode> episodes;
 	
 	public boolean parse(String podcastUrl) {
-		podcastItems = new ArrayList<PodcastItem>();
+		episodes = new ArrayList<PodcastEpisode>();
 		try {
 			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new URL(podcastUrl).openStream());
 		    Element root = document.getDocumentElement();
@@ -80,8 +80,8 @@ public class PodcastParser {
 				    				dateLong = d.getTime();
 			    				} catch(Exception e) {}
 			    				
-			    				PodcastItem podcastItem = new PodcastItem(itemUrl, null, itemTitle, itemGuid, null, PodcastItem.STATUS_NEW, dateLong, duration, type);
-			    				podcastItems.add(podcastItem);
+			    				PodcastEpisode episode = new PodcastEpisode(itemUrl, null, itemTitle, itemGuid, null, PodcastEpisode.STATUS_NEW, dateLong, duration, type);
+			    				episodes.add(episode);
 		    				}
 		    			}
 		    		}
@@ -106,8 +106,8 @@ public class PodcastParser {
 		return imageUrl;
 	}
 	
-	public ArrayList<PodcastItem> getPodcastItems() {
-		return podcastItems;
+	public ArrayList<PodcastEpisode> getEpisodes() {
+		return episodes;
 	}
 	
 	public byte[] downloadImage() {
