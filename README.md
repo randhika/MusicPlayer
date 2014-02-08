@@ -16,6 +16,7 @@ So I decided to write this application for my personal use and to publish it hop
 - Songs search by title or artist
 - Listen to podcasts
 - Possibility to execute commands shaking the device
+- Remote Control support (Android 4.1+ only)
 
 
 ## Required permissions

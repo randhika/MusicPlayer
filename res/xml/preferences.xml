@@ -84,7 +84,7 @@
 	        android:title="@string/enableBackDoublePressToQuitApp"
 	        android:summary="@string/enableBackDoublePressToQuitAppSummary"
 	        android:defaultValue="true" />
-	    <EditTextPreference
+	    <Preference
 	        android:key="podcastsDirectory"
 	        android:title="@string/podcastsDirectory"
 	        android:summary="@string/podcastsDirectorySummary" />

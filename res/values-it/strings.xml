@@ -152,6 +152,8 @@
 	<string name="translucentNavigationBar">Barra di navigazione trasparente</string>
 	<string name="restartNeeded">Riavvio necessario</string>
 	<string name="restartNeededMessage">Per applicare alcune impostazioni è necessario riavviare l\'applicazione.</string>
+	<string name="chooseDirectory">Scegli una directory</string>
+	<string name="currentDirectory">Directory attuale:</string>
 	
 	<!-- Podcasts -->
 	<string name="podcast">Podcast</string>

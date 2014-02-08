@@ -18,9 +18,12 @@ package com.andreadec.musicplayer;
 
 import java.io.*;
 import java.util.*;
+
 import javax.xml.parsers.*;
+
 import org.w3c.dom.*;
 import org.xmlpull.v1.*;
+
 import android.annotation.*;
 import android.app.*;
 import android.content.*;
@@ -38,7 +41,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 	private final static String DEFAULT_IMPORTEXPORT_FILENAME = Environment.getExternalStorageDirectory() + "/musicplayer_info.xml";
 	
 	private SharedPreferences preferences;
-	private Preference preferenceClearCache, preferenceIndexBaseFolder, preferenceAbout, preferenceImport, preferenceExport;
+	private Preference preferenceClearCache, preferenceIndexBaseFolder, preferenceAbout, preferenceImport, preferenceExport, preferencePodcastsDirectory;
 	private Preference preferenceTranslucentStatusBar, preferenceTranslucentNavigationBar, preferenceDisableLockScreen;
 	
 	private boolean needsRestart;
@@ -69,6 +72,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
     	preferenceAbout = findPreference("about");
     	preferenceImport = findPreference("import");
     	preferenceExport = findPreference("export");
+    	preferencePodcastsDirectory = findPreference("podcastsDirectory");
     	
     	updateCacheSize();
     	updateBaseFolder();
@@ -78,12 +82,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
     	preferenceAbout.setOnPreferenceClickListener(this);
     	preferenceImport.setOnPreferenceClickListener(this);
     	preferenceExport.setOnPreferenceClickListener(this);
-    	
-    	String podcastsDirectory = preferences.getString(Constants.PREFERENCE_PODCASTSDIRECTORY, null);
-    	if(podcastsDirectory==null || podcastsDirectory.equals("")) {
-    		EditTextPreference preferencePodcastsDirectory = (EditTextPreference)findPreference("podcastsDirectory");
-    		preferencePodcastsDirectory.setText(Podcast.DEFAULT_PODCASTS_PATH);
-    	}
+    	preferencePodcastsDirectory.setOnPreferenceClickListener(this);
     	
     	preferenceTranslucentStatusBar = findPreference("translucentStatusBar");
     	preferenceTranslucentNavigationBar = findPreference("translucentNavigationBar");
@@ -154,6 +153,21 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 			doImport();
 		} else if(preference.equals(preferenceExport)) {
 			doExport();
+		} else if(preference.equals(preferencePodcastsDirectory)) {
+			String podcastsDirectory = preferences.getString(Constants.PREFERENCE_PODCASTSDIRECTORY, null);
+	    	if(podcastsDirectory==null || podcastsDirectory.equals("")) {
+	    		podcastsDirectory = Podcast.DEFAULT_PODCASTS_PATH;
+	    	}
+	    	DirectoryChooserDialog chooser = new DirectoryChooserDialog(this, podcastsDirectory, new DirectoryChooserDialog.OnFileChosen() {
+				@Override
+				public void onFileChosen(String directory) {
+					if(directory==null) return;
+					SharedPreferences.Editor editor = preferences.edit();
+					editor.putString(Constants.PREFERENCE_PODCASTSDIRECTORY, directory);
+					editor.commit();
+				}
+			});
+	    	chooser.show();
 		}
 		return false;
 	}

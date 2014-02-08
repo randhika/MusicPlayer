@@ -153,6 +153,8 @@
 	<string name="translucentNavigationBar">Translucent navigation bar</string>
 	<string name="restartNeeded">Restart needed</string>
 	<string name="restartNeededMessage">To apply some settings the app must be restarted.</string>
+	<string name="chooseDirectory">Choose a directory</string>
+	<string name="currentDirectory">Current directory:</string>
 	
 	<!-- Podcasts -->
 	<string name="podcast">Podcast</string>
