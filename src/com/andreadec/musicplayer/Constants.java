@@ -104,4 +104,6 @@ public class Constants {
 	
 	// Other constants
 	public final static int IMAGES_CACHE_SIZE = 4 * 1024 * 1024; // 4MiB
+	//public final static int SECOND_SEEKBAR_DURATION = 1200000; // 20 minutes, in milliseconds
+	public final static int SECOND_SEEKBAR_DURATION = 600000; // 10 minutes, in milliseconds
 }

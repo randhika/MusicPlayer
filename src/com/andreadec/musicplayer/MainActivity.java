@@ -50,8 +50,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	public final static int PAGE_BROWSER=0, PAGE_PLAYLISTS=1, PAGE_RADIOS=2, PAGE_PODCASTS=3;
 	
 	private TextView textViewArtist, textViewTitle, textViewTime;
-	private ImageButton imageButtonPrevious, imageButtonPlayPause, imageButtonNext;
-	private SeekBar seekBar;
+	private ImageButton imageButtonPrevious, imageButtonPlayPause, imageButtonNext, imageButtonShowSeekbar2;
+	private SeekBar seekBar1, seekBar2;
 	private ImageView imageViewSongImage;
 	private ImageButton imageButtonShuffle, imageButtonRepeat, imageButtonRepeatAll;
 	private Button buttonBassBoost, buttonEqualizer, buttonShake;
@@ -184,7 +184,9 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         imageButtonPrevious = (ImageButton)findViewById(R.id.imageButtonPrevious);
         imageButtonPlayPause = (ImageButton)findViewById(R.id.imageButtonPlayPause);
         imageButtonNext = (ImageButton)findViewById(R.id.imageButtonNext);
-        seekBar = (SeekBar)findViewById(R.id.seekBar);
+        seekBar1 = (SeekBar)findViewById(R.id.seekBar1);
+        seekBar2 = (SeekBar)findViewById(R.id.seekBar2);
+        imageButtonShowSeekbar2 = (ImageButton)findViewById(R.id.imageButtonShowSeekbar2);
         imageButtonShuffle = (ImageButton)findViewById(R.id.imageButtonShuffle);
         imageButtonRepeat = (ImageButton)findViewById(R.id.imageButtonRepeat);
         imageButtonRepeatAll = (ImageButton)findViewById(R.id.imageButtonRepeatAll);
@@ -199,11 +201,13 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         buttonEqualizer.setOnClickListener(this);
         buttonShake.setOnClickListener(this);
         
+        imageButtonShowSeekbar2.setOnClickListener(this);
         imageButtonPrevious.setOnClickListener(this);
         imageButtonPlayPause.setOnClickListener(this);
         imageButtonNext.setOnClickListener(this);
-        seekBar.setOnSeekBarChangeListener(this);
-        seekBar.setClickable(false);
+        seekBar1.setOnSeekBarChangeListener(this);
+        seekBar1.setClickable(false);
+        seekBar2.setOnSeekBarChangeListener(this);
         textViewTime.setOnClickListener(this);
         
         showSongImage = preferences.getBoolean(Constants.PREFERENCE_SHOWSONGIMAGE, Constants.DEFAULT_SHOWSONGIMAGE);
@@ -360,16 +364,25 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     		// Song loaded
 	    	textViewTitle.setText(playingItem.getTitle());
 	    	textViewArtist.setText(playingItem.getArtist());
-	    	seekBar.setMax(musicService.getDuration());
-	    	seekBar.setProgress(musicService.getCurrentPosition());
-	    	seekBar.setClickable(true);
+	    	seekBar1.setMax(musicService.getDuration());
+	    	seekBar1.setProgress(musicService.getCurrentPosition());
+	    	seekBar1.setClickable(true);
 	    	isLengthAvailable = playingItem.isLengthAvailable();
+	    	seekBar2.setVisibility(View.GONE);
 	    	if(isLengthAvailable) {
-	    		songDurationString = "/" + Utils.formatTime(musicService.getDuration());
-	    		seekBar.setVisibility(SeekBar.VISIBLE);
+	    		int duration = musicService.getDuration();
+	    		songDurationString = "/" + Utils.formatTime(duration);
+	    		seekBar1.setVisibility(View.VISIBLE);
+	    		if(duration>Constants.SECOND_SEEKBAR_DURATION) {
+	    			imageButtonShowSeekbar2.setVisibility(View.VISIBLE);
+	    			imageButtonShowSeekbar2.setImageResource(R.drawable.expand);
+	    		} else {
+	    			imageButtonShowSeekbar2.setVisibility(View.GONE);
+	    		}
 	    	} else {
 	    		songDurationString = "";
-	    		seekBar.setVisibility(SeekBar.GONE);
+	    		seekBar1.setVisibility(View.GONE);
+	    		imageButtonShowSeekbar2.setVisibility(View.GONE);
 	    	}
 	    	
 	    	if(showSongImage) {
@@ -389,12 +402,14 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     		// No song loaded
     		textViewTitle.setText(R.string.noSong);
 	    	textViewArtist.setText("");
-    		seekBar.setMax(10);
-	    	seekBar.setProgress(0);
-	    	seekBar.setClickable(false);
+	    	seekBar1.setMax(10);
+	    	seekBar1.setProgress(0);
+	    	seekBar1.setClickable(false);
+	    	seekBar2.setVisibility(View.GONE);
+	    	imageButtonShowSeekbar2.setVisibility(View.GONE);
 	    	isLengthAvailable = true;
 	    	songDurationString = "";
-	    	seekBar.setVisibility(SeekBar.GONE);
+	    	seekBar1.setVisibility(SeekBar.GONE);
 	    	imageViewSongImage.setVisibility(View.GONE);
     	}
     	updatePlayPauseButton();
@@ -412,7 +427,13 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     /* Updates the seekbar and the position information according to the playing song. */
     private void updatePosition() {
 		int progress = musicService.getCurrentPosition();
-		seekBar.setProgress(progress);
+		seekBar1.setProgress(progress);
+		if(musicService.getDuration()>Constants.SECOND_SEEKBAR_DURATION) {
+			int progress2 = progress%Constants.SECOND_SEEKBAR_DURATION;
+			
+			seekBar2.setMax(Constants.SECOND_SEEKBAR_DURATION);
+	    	seekBar2.setProgress(progress2);
+		}
 		String time;
 		if(showRemainingTime && isLengthAvailable) {
 			time = "-" + Utils.formatTime(musicService.getDuration()-progress);
@@ -618,6 +639,14 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		} else if(view.equals(buttonShake)) {
 			musicService.toggleShake();
 			updateExtendedMenu();
+		} else if(view.equals(imageButtonShowSeekbar2)) {
+			if(seekBar2.getVisibility()==View.VISIBLE) {
+				imageButtonShowSeekbar2.setImageResource(R.drawable.expand);
+				seekBar2.setVisibility(View.GONE);
+			} else {
+				imageButtonShowSeekbar2.setImageResource(R.drawable.collapse);
+				seekBar2.setVisibility(View.VISIBLE);
+			}
 		} else if(view.equals(buttonQuit)) {
 			quitApplication();
 		}
@@ -738,7 +767,12 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 		if(fromUser) { // Event is triggered only if the seekbar position was modified by the user
-			musicService.seekTo(progress);
+			if(seekBar.equals(seekBar1)) {
+				musicService.seekTo(progress);
+			} else if(seekBar.equals(seekBar2)) {
+				int progress2 = (seekBar1.getProgress()/Constants.SECOND_SEEKBAR_DURATION)*Constants.SECOND_SEEKBAR_DURATION;
+				musicService.seekTo(progress2+progress);
+			}
 			updatePosition();
 		}
 	}
