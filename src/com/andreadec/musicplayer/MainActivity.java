@@ -943,14 +943,13 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 
 		@Override
 		public boolean onFling(MotionEvent event1, MotionEvent event2,  float velocityX, float velocityY) {
-			if(event1.getX()<event2.getX()+50) musicService.previousItem(false);
-			else if(event1.getX()>event2.getX()-50) musicService.nextItem();
+			if(event1.getX()<event2.getX()) musicService.previousItem(false);
+			else if(event1.getX()>event2.getX()) musicService.nextItem();
 			return true;
 		}
 		
 		@Override
 	    public boolean onSingleTapConfirmed(MotionEvent event) {
-			System.out.println("SINGLE");
 			musicService.playPause();
 	        return true;
 	    }
