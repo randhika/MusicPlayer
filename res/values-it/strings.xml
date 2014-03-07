@@ -156,6 +156,8 @@
 	<string name="restartNeededMessage">Per applicare alcune impostazioni è necessario riavviare l\'applicazione.</string>
 	<string name="chooseDirectory">Scegli una directory</string>
 	<string name="currentDirectory">Directory attuale:</string>
+	<string name="enableGestures">Abilita gestures</string>
+	<string name="enableGesturesSummary">Abilita le gestures per controllare la riproduzione musicale.</string>
 	
 	<!-- Podcasts -->
 	<string name="podcast">Podcast</string>

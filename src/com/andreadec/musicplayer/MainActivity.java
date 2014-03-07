@@ -27,6 +27,7 @@ import android.media.AudioManager;
 import android.os.*;
 import android.preference.*;
 import android.support.v4.util.LruCache;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.app.*;
 import android.text.TextUtils;
@@ -49,9 +50,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	public final static int PAGE_BROWSER=0, PAGE_PLAYLISTS=1, PAGE_RADIOS=2, PAGE_PODCASTS=3;
 	
 	private TextView textViewArtist, textViewTitle, textViewTime;
-	private ImageButton imageButtonPrevious, imageButtonPlayPause, imageButtonNext, imageButtonToggleExtendedMenu;
+	private ImageButton imageButtonPrevious, imageButtonPlayPause, imageButtonNext;
 	private SeekBar seekBar;
-	private View extendedMenu;
 	private ImageView imageViewSongImage;
 	private ImageButton imageButtonShuffle, imageButtonRepeat, imageButtonRepeatAll;
 	private Button buttonBassBoost, buttonEqualizer, buttonShake;
@@ -184,9 +184,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         imageButtonPrevious = (ImageButton)findViewById(R.id.imageButtonPrevious);
         imageButtonPlayPause = (ImageButton)findViewById(R.id.imageButtonPlayPause);
         imageButtonNext = (ImageButton)findViewById(R.id.imageButtonNext);
-        imageButtonToggleExtendedMenu = (ImageButton)findViewById(R.id.imageButtonToggleExtendedMenu);
         seekBar = (SeekBar)findViewById(R.id.seekBar);
-        extendedMenu = findViewById(R.id.extendedMenu);
         imageButtonShuffle = (ImageButton)findViewById(R.id.imageButtonShuffle);
         imageButtonRepeat = (ImageButton)findViewById(R.id.imageButtonRepeat);
         imageButtonRepeatAll = (ImageButton)findViewById(R.id.imageButtonRepeatAll);
@@ -204,7 +202,6 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         imageButtonPrevious.setOnClickListener(this);
         imageButtonPlayPause.setOnClickListener(this);
         imageButtonNext.setOnClickListener(this);
-        imageButtonToggleExtendedMenu.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
         seekBar.setClickable(false);
         textViewTime.setOnClickListener(this);
@@ -221,6 +218,17 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         	openPage(PAGE_BROWSER);
         }
         loadSongFromIntent();
+        
+        if(preferences.getBoolean(Constants.PREFERENCE_ENABLEGESTURES, Constants.DEFAULT_ENABLEGESTURES)) {
+	        final GestureDetectorCompat gestureDetector = new GestureDetectorCompat(this, new PlayerGestureListener());
+	        View layoutTop = findViewById(R.id.layoutTop);
+	        layoutTop.setOnTouchListener(new OnTouchListener() {
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					return gestureDetector.onTouchEvent(event);
+				}
+	        });
+        }
     }
     
     @Override
@@ -602,14 +610,6 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		} else if(view.equals(buttonShake)) {
 			musicService.toggleShake();
 			updateExtendedMenu();
-		} else if(view.equals(imageButtonToggleExtendedMenu)) {
-			if(extendedMenu.getVisibility()==View.VISIBLE) {
-				extendedMenu.setVisibility(View.GONE);
-				imageButtonToggleExtendedMenu.setImageResource(R.drawable.expand);
-			} else {
-				extendedMenu.setVisibility(View.VISIBLE);
-				imageButtonToggleExtendedMenu.setImageResource(R.drawable.collapse);
-			}
 		} else if(view.equals(buttonQuit)) {
 			quitApplication();
 		}
@@ -925,5 +925,26 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		builder.setView(view);
 		builder.setPositiveButton(R.string.ok, null);
 		builder.show();
+	}
+	
+	private class PlayerGestureListener extends GestureDetector.SimpleOnGestureListener {
+    	@Override
+        public boolean onDown(MotionEvent event) { 
+            return true;
+        }
+
+		@Override
+		public boolean onFling(MotionEvent event1, MotionEvent event2,  float velocityX, float velocityY) {
+			if(event1.getX()<event2.getX()+50) musicService.previousItem(false);
+			else if(event1.getX()>event2.getX()-50) musicService.nextItem();
+			return true;
+		}
+		
+		@Override
+	    public boolean onSingleTapConfirmed(MotionEvent event) {
+			System.out.println("SINGLE");
+			musicService.playPause();
+	        return true;
+	    }
 	}
 }

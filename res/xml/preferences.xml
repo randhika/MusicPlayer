@@ -88,6 +88,11 @@
 	        android:title="@string/enableBackDoublePressToQuitApp"
 	        android:summary="@string/enableBackDoublePressToQuitAppSummary"
 	        android:defaultValue="true" />
+	    <CheckBoxPreference
+			android:key="enableGestures"
+			android:title="@string/enableGestures"
+			android:summary="@string/enableGesturesSummary"
+        	android:defaultValue="false" />
 	    <Preference
 	        android:key="podcastsDirectory"
 	        android:title="@string/podcastsDirectory"

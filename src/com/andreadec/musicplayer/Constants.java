@@ -47,6 +47,7 @@ public class Constants {
 	public final static String PREFERENCE_SHOWRELATIVEPATHUNDERBASEDIRECTORY = "showRelativePathUnderBaseDirectory";
 	public final static String PREFERENCE_TRANSLUCENTSTATUSBAR = "translucentStatusBar";
 	public final static String PREFERENCE_TRANSLUCENTNAVIGATIONBAR = "translucentNavigationBar";
+	public final static String PREFERENCE_ENABLEGESTURES = "enableGestures";
 	
 	public final static String PREFERENCE_SHAKEINTERVAL = "shakeInterval";
 	public final static String PREFERENCE_SHAKETHRESHOLD = "shakeThreshold";
@@ -88,6 +89,7 @@ public class Constants {
 	public final static boolean DEFAULT_SHOWRELATIVEPATHUNDERBASEDIRECTORY = true;
 	public final static boolean DEFAULT_TRANSLUCENTSTATUSBAR = true;
 	public final static boolean DEFAULT_TRANSLUCENTNAVIGATIONBAR = true;
+	public final static boolean DEFAULT_ENABLEGESTURES = false;
 	
 	
 	// Notifications

@@ -157,6 +157,8 @@
 	<string name="restartNeededMessage">To apply some settings the app must be restarted.</string>
 	<string name="chooseDirectory">Choose a directory</string>
 	<string name="currentDirectory">Current directory:</string>
+	<string name="enableGestures">Enable gestures</string>
+	<string name="enableGesturesSummary">Enable gestures to control music playback.</string>
 	
 	<!-- Podcasts -->
 	<string name="podcast">Podcast</string>

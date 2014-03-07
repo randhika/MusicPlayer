@@ -42,7 +42,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 	
 	private SharedPreferences preferences;
 	private Preference preferenceClearCache, preferenceIndexBaseFolder, preferenceAbout, preferenceImport, preferenceExport, preferencePodcastsDirectory;
-	private Preference preferenceTranslucentStatusBar, preferenceTranslucentNavigationBar, preferenceDisableLockScreen;
+	private Preference preferenceTranslucentStatusBar, preferenceTranslucentNavigationBar, preferenceDisableLockScreen, preferenceEnableGestures;
 	
 	private boolean needsRestart;
 	
@@ -87,9 +87,11 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
     	preferenceTranslucentStatusBar = findPreference("translucentStatusBar");
     	preferenceTranslucentNavigationBar = findPreference("translucentNavigationBar");
     	preferenceDisableLockScreen = findPreference("disableLockScreen");
+    	preferenceEnableGestures = findPreference("enableGestures");
     	preferenceTranslucentStatusBar.setOnPreferenceChangeListener(this);
     	preferenceTranslucentNavigationBar.setOnPreferenceChangeListener(this);
     	preferenceDisableLockScreen.setOnPreferenceChangeListener(this);
+    	preferenceEnableGestures.setOnPreferenceChangeListener(this);
 	}
 	
 	@Override
@@ -311,7 +313,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
-		if(preference.equals(preferenceTranslucentNavigationBar) || preference.equals(preferenceTranslucentStatusBar) || preference.equals(preferenceDisableLockScreen)) {
+		if(preference.equals(preferenceTranslucentNavigationBar) || preference.equals(preferenceTranslucentStatusBar) || preference.equals(preferenceDisableLockScreen) || preference.equals(preferenceEnableGestures)) {
 			needsRestart = true;
 		}
 		return true;
