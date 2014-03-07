@@ -59,7 +59,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	private Intent serviceIntent;
 	private BroadcastReceiver broadcastReceiver;
 	private SharedPreferences preferences;
-	private View buttonQuit;
+	private View buttonQuit, layoutPlaybackControls;
 	
 	private DrawerLayout drawerLayout;
 	private RelativeLayout drawerContainer;
@@ -219,6 +219,7 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
         }
         loadSongFromIntent();
         
+        layoutPlaybackControls = findViewById(R.id.layoutPlaybackControls);
         if(preferences.getBoolean(Constants.PREFERENCE_ENABLEGESTURES, Constants.DEFAULT_ENABLEGESTURES)) {
 	        final GestureDetectorCompat gestureDetector = new GestureDetectorCompat(this, new PlayerGestureListener());
 	        View layoutTop = findViewById(R.id.layoutTop);
@@ -228,6 +229,11 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 					return gestureDetector.onTouchEvent(event);
 				}
 	        });
+	        if(preferences.getBoolean(Constants.PREFERENCE_SHOWPLAYBACKCONTROLS, Constants.DEFAULT_SHOWPLAYBACKCONTROLS)) {
+	        	layoutPlaybackControls.setVisibility(View.VISIBLE);
+	        }
+        } else {
+        	layoutPlaybackControls.setVisibility(View.VISIBLE);
         }
     }
     
@@ -369,12 +375,14 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 	    	if(showSongImage) {
 	    		Bitmap image = playingItem.getImage();
 	    		if(image==null) {
+	    			imageViewSongImage.setImageResource(R.drawable.ic_launcher);
 	    			imageViewSongImage.setVisibility(View.GONE);
 	    		} else {
 	    			imageViewSongImage.setImageBitmap(image);
 	    			imageViewSongImage.setVisibility(View.VISIBLE);
 	    		}
 	    	} else {
+	    		imageViewSongImage.setImageResource(R.drawable.ic_launcher);
 	    		imageViewSongImage.setVisibility(View.GONE);
 	    	}
     	} else {

@@ -42,7 +42,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 	
 	private SharedPreferences preferences;
 	private Preference preferenceClearCache, preferenceIndexBaseFolder, preferenceAbout, preferenceImport, preferenceExport, preferencePodcastsDirectory;
-	private Preference preferenceTranslucentStatusBar, preferenceTranslucentNavigationBar, preferenceDisableLockScreen, preferenceEnableGestures;
+	private Preference preferenceTranslucentStatusBar, preferenceTranslucentNavigationBar, preferenceDisableLockScreen, preferenceEnableGestures, preferenceShowPlaybackControls;
 	
 	private boolean needsRestart;
 	
@@ -88,10 +88,12 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
     	preferenceTranslucentNavigationBar = findPreference("translucentNavigationBar");
     	preferenceDisableLockScreen = findPreference("disableLockScreen");
     	preferenceEnableGestures = findPreference("enableGestures");
+    	preferenceShowPlaybackControls = findPreference("showPlaybackControls");
     	preferenceTranslucentStatusBar.setOnPreferenceChangeListener(this);
     	preferenceTranslucentNavigationBar.setOnPreferenceChangeListener(this);
     	preferenceDisableLockScreen.setOnPreferenceChangeListener(this);
     	preferenceEnableGestures.setOnPreferenceChangeListener(this);
+    	preferenceShowPlaybackControls.setOnPreferenceChangeListener(this);
 	}
 	
 	@Override
@@ -313,7 +315,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnPrefere
 
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
-		if(preference.equals(preferenceTranslucentNavigationBar) || preference.equals(preferenceTranslucentStatusBar) || preference.equals(preferenceDisableLockScreen) || preference.equals(preferenceEnableGestures)) {
+		if(preference.equals(preferenceTranslucentNavigationBar) || preference.equals(preferenceTranslucentStatusBar) || preference.equals(preferenceDisableLockScreen) || preference.equals(preferenceEnableGestures) || preference.equals(preferenceShowPlaybackControls)) {
 			needsRestart = true;
 		}
 		return true;

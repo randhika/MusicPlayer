@@ -99,38 +99,14 @@
 		            android:textSize="@dimen/textViewTimeSize" />
 			
 			    <LinearLayout
-			        android:layout_width="match_parent"
+			        android:layout_width="wrap_content"
 			        android:layout_height="wrap_content"
 			        android:paddingTop="10dp"
 			        android:layout_marginTop="5dp"
-			        android:layout_marginBottom="5dp" >
+			        android:layout_marginBottom="5dp"
+			        android:layout_gravity="center_horizontal" >
 			
-			        <ImageButton
-			            android:id="@+id/imageButtonPrevious"
-			            android:layout_width="wrap_content"
-			            android:layout_height="wrap_content"
-			            android:src="@drawable/previous"
-			            android:contentDescription="@string/previous"
-			            android:layout_marginLeft="3dp"
-			            android:background="@drawable/orange_button" />
-			
-			        <ImageButton
-			            android:id="@+id/imageButtonPlayPause"
-			            android:layout_width="wrap_content"
-			            android:layout_height="wrap_content"
-			            android:src="@drawable/play"
-			            android:contentDescription="@string/play"
-			            android:layout_marginLeft="3dp"
-			            android:background="@drawable/orange_button" />
-			
-			        <ImageButton
-			            android:id="@+id/imageButtonNext"
-			            android:layout_width="wrap_content"
-			            android:layout_height="wrap_content"
-			            android:src="@drawable/next"
-			            android:contentDescription="@string/next"
-			            android:layout_marginLeft="3dp"
-			            android:background="@drawable/orange_button" />
+			        <include layout="@layout/playback_controls" />
 			
 			    </LinearLayout>
 			   

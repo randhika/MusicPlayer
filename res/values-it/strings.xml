@@ -158,6 +158,8 @@
 	<string name="currentDirectory">Directory attuale:</string>
 	<string name="enableGestures">Abilita gestures</string>
 	<string name="enableGesturesSummary">Abilita le gestures per controllare la riproduzione musicale.</string>
+	<string name="showPlaybackControls">Mostra controlli riproduzione</string>
+	<string name="showPlaybackControlsSummary">Mostra i pulsanti per controllare la riproduzione.</string>
 	
 	<!-- Podcasts -->
 	<string name="podcast">Podcast</string>

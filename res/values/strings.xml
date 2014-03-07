@@ -159,6 +159,8 @@
 	<string name="currentDirectory">Current directory:</string>
 	<string name="enableGestures">Enable gestures</string>
 	<string name="enableGesturesSummary">Enable gestures to control music playback.</string>
+	<string name="showPlaybackControls">Show playback controls</string>
+	<string name="showPlaybackControlsSummary">Show buttons to control playback.</string>
 	
 	<!-- Podcasts -->
 	<string name="podcast">Podcast</string>
