@@ -446,8 +446,8 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     
     /* Updates the shuffle/repeat/repeat_all icons according to the playing song */
     private void updateExtendedMenu() {
-    	final int on = R.drawable.green_button;
-    	final int off = R.drawable.orange_button;
+    	final int on = R.drawable.navigation_button_on;
+    	final int off = R.drawable.navigation_button_off;
     	if(musicService.getShuffle()) imageButtonShuffle.setBackgroundResource(on);
     	else imageButtonShuffle.setBackgroundResource(off);
     	if(musicService.getRepeat()) imageButtonRepeat.setBackgroundResource(on);
