@@ -477,6 +477,7 @@ public class MusicService extends Service implements OnCompletionListener {
 		
 		if(shuffle) {
 			randomItem();
+			return;
 		}
 		
 		PlayableItem nextItem = currentPlayingItem.getNext(repeatAll);
