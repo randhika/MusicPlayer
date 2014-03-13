@@ -427,11 +427,17 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
     /* Updates the seekbar and the position information according to the playing song. */
     private void updatePosition() {
 		int progress = musicService.getCurrentPosition();
+		int duration = musicService.getDuration();
 		seekBar1.setProgress(progress);
-		if(musicService.getDuration()>Constants.SECOND_SEEKBAR_DURATION) {
+		if(duration>Constants.SECOND_SEEKBAR_DURATION) {
 			int progress2 = progress%Constants.SECOND_SEEKBAR_DURATION;
 			
-			seekBar2.setMax(Constants.SECOND_SEEKBAR_DURATION);
+			int parts = duration/Constants.SECOND_SEEKBAR_DURATION;
+			if(progress>parts*Constants.SECOND_SEEKBAR_DURATION) {
+				seekBar2.setMax(duration-parts*Constants.SECOND_SEEKBAR_DURATION);
+			} else {
+				seekBar2.setMax(Constants.SECOND_SEEKBAR_DURATION);
+			}
 	    	seekBar2.setProgress(progress2);
 		}
 		String time;
