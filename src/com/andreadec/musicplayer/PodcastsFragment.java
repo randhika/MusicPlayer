@@ -146,14 +146,31 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 		} else if(item instanceof Podcast) {
 			openPodcast((Podcast)item);
 		} else if(item instanceof PodcastEpisode) {
-			PodcastEpisode podcastEpisode = (PodcastEpisode)item;
+			final PodcastEpisode podcastEpisode = (PodcastEpisode)item;
 			int status = podcastEpisode.getStatus();
 			if(podcastEpisode.getStatus()==PodcastEpisode.STATUS_NEW) {
-				if(Utils.isWifiConnected()) {
-					downloadEpisode(podcastEpisode);
-				} else {
-					downloadEpisodeConfirm(podcastEpisode);
-				}
+				AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
+				dialog.setTitle(podcastEpisode.getTitle());
+				dialog.setMessage(R.string.chooseDownloadMethod);
+				dialog.setPositiveButton(R.string.download, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						if(Utils.isWifiConnected()) {
+							downloadEpisode(podcastEpisode);
+						} else {
+							downloadEpisodeConfirm(podcastEpisode);
+						}
+					}
+				});
+				dialog.setNegativeButton(R.string.streaming, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						podcastEpisode.setStreaming();
+						((MainActivity)getActivity()).playItem(podcastEpisode);
+						updateListView();
+					}
+				});
+				dialog.show();
 			} else if(status==PodcastEpisode.STATUS_DOWNLOADED) {
 				((MainActivity)getActivity()).playItem(podcastEpisode);
 				updateListView();

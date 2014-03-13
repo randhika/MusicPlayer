@@ -151,6 +151,10 @@ public class PodcastEpisode implements PlayableItem {
 		db.update("ItemsInPodcast", values, "idItem=\""+id+"\"", null);
 		db.close();
 	}
+	
+	public void setStreaming() {
+		filename = url;
+	}
 
 	@Override
 	public String getArtist() {

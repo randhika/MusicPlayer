@@ -168,6 +168,9 @@
 	<string name="addPodcast">Add podcast</string>
 	<string name="removePodcastConfirm">Remove this podcast?</string>
 	<string name="update">Update</string>
+	<string name="download">Download</string>
+	<string name="streaming">Streaming</string>
+	<string name="chooseDownloadMethod">How would you like to listen?</string>
 	<string name="updatingPodcast">Updating podcast&#8230;</string>
 	<string name="podcastStatusNew">New</string>
 	<string name="podcastStatusDownloaded">Downloaded</string>

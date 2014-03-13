@@ -167,6 +167,9 @@
 	<string name="addPodcast">Aggiungi podcast</string>
 	<string name="removePodcastConfirm">Eliminare questo podcast?</string>
 	<string name="update">Aggiorna</string>
+	<string name="download">Download</string>
+	<string name="streaming">Streaming</string>
+	<string name="chooseDownloadMethod">Come vuoi procedere?</string>
 	<string name="updatingPodcast">Aggiornamento podcast in corso&#8230;</string>
 	<string name="podcastStatusNew">Nuovo</string>
 	<string name="podcastStatusDownloaded">Scaricato</string>
