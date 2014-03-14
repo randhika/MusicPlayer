@@ -11,10 +11,12 @@
 
     <EditText
         android:id="@+id/editTextPodcastUrl"
-        android:text="http://"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10" >
+        android:ems="10"
+        android:inputType="textUri"
+        android:text="http://" >
+
         <requestFocus />
     </EditText>
 

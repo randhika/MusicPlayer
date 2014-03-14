@@ -190,6 +190,7 @@
 	<string name="removeAllDownloadedEpisodesConfirm">Eliminare tutti gli episodi scaricati?</string>
 	<string name="removeDownloadedEpisodesConfirm">Eliminare tutti gli episodi scaricati del podcast %1$s?</string>
 	<string name="removeDownloadedEpisodesCompletion">Episodi scaricati eliminati.</string>
+	<string name="loadingPodcastEpisode">Caricamento episodio %1$s</string>
 	
 	<!-- Shake sensor -->
 	<string name="shake">Shake</string>

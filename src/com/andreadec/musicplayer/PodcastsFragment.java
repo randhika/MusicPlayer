@@ -166,7 +166,7 @@ public class PodcastsFragment extends MusicPlayerFragment implements OnItemClick
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						podcastEpisode.setStreaming();
-						((MainActivity)getActivity()).playItem(podcastEpisode);
+						((MainActivity)getActivity()).playPodcastEpisodeStreaming(podcastEpisode);
 						updateListView();
 					}
 				});

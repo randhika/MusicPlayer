@@ -696,6 +696,10 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 		new PlayRadioTask(radio).execute();
 	}
 	
+	public void playPodcastEpisodeStreaming(PodcastEpisode episode) {
+		new PlayPodcastEpisodeStreamingTask(episode).execute();
+	}
+	
 	public PlayableItem getCurrentPlayingItem() {
 		if(musicService==null) return null;
 		return musicService.getCurrentPlayingItem();
@@ -841,6 +845,53 @@ public class MainActivity extends FragmentActivity implements OnClickListener, O
 			
 			if(!success) {
 				Utils.showMessageDialog(MainActivity.this, R.string.errorWebRadio, R.string.errorWebRadioMessage);
+			}
+		}
+	}
+	
+	
+	private class PlayPodcastEpisodeStreamingTask extends AsyncTask<Void, Void, Boolean> {
+		private ProgressDialog progressDialog;
+		private PodcastEpisode episode;
+		public PlayPodcastEpisodeStreamingTask(PodcastEpisode episode) {
+			this.episode = episode;
+			progressDialog = new ProgressDialog(MainActivity.this);
+		}
+		@Override
+		protected void onPreExecute() {
+	        progressDialog.setIndeterminate(true);
+	        progressDialog.setCancelable(true);
+	        progressDialog.setOnCancelListener(new OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface dialog) {
+					cancel(true);
+				}
+			});
+	        progressDialog.setCanceledOnTouchOutside(false);
+	        progressDialog.setMessage(MainActivity.this.getString(R.string.loadingPodcastEpisode, episode.getTitle()));
+			progressDialog.show();
+			startPollingThread = false;
+			stopPollingThread(); // To prevent polling thread activation
+	    }
+		@Override
+		protected Boolean doInBackground(Void... params) {
+			return musicService.playItem(episode);
+		}
+		@Override
+	    protected void onCancelled() {
+			musicService.playItem(null);
+	    }
+		@Override
+		protected void onPostExecute(final Boolean success) {
+			updatePlayingItem();
+			if(progressDialog.isShowing()) {
+				progressDialog.dismiss();
+	        }
+			startPollingThread = true;
+			if(!pollingThreadRunning) startPollingThread();
+			
+			if(!success) {
+				Utils.showMessageDialog(MainActivity.this, R.string.error, R.string.errorSong);
 			}
 		}
 	}
