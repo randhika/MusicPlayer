@@ -67,11 +67,16 @@ public class MusicService extends Service implements OnCompletionListener {
 	private Bitmap icon;
 	private RemoteControlClient remoteControlClient;
 	
+	private PowerManager.WakeLock wakeLock;
+	
 	/**
 	 * Called when the service is created.
 	 */
 	@Override
 	public void onCreate() {
+		PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MusicServiceWakelock");
+		
 		// Initialize the telephony manager
 		telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		phoneStateListener = new MusicPhoneStateListener();
@@ -256,6 +261,23 @@ public class MusicService extends Service implements OnCompletionListener {
 		shakeListener.disable();
 		mediaPlayer.release();
 		stopForeground(true);
+		
+		wakeLockRelease(); // Just to be sure the wakelock has been released! ;-)
+	}
+	
+	private void wakeLockAcquire() {
+		System.out.print("WakeLock requested");
+		if(!wakeLock.isHeld()) {
+			System.out.print(" -> ACQUIRED");
+			wakeLock.acquire();
+		}
+		System.out.println();
+	}
+	private void wakeLockRelease() {
+		if(wakeLock.isHeld()) {
+			wakeLock.release();
+			System.out.println("WakeLock released");
+		}
 	}
 	
 	public boolean playItem(PlayableItem item) {
@@ -263,6 +285,7 @@ public class MusicService extends Service implements OnCompletionListener {
 	}
 	
 	public boolean playItem(PlayableItem item, boolean startPlaying) {
+		wakeLockAcquire();
 		currentPlayingItem = item;
 		mediaPlayer.reset();
 		mediaPlayer.setOnCompletionListener(null);
@@ -413,7 +436,9 @@ public class MusicService extends Service implements OnCompletionListener {
 		if(currentPlayingItem==null) return;
 		if (mediaPlayer.isPlaying()) {
 			mediaPlayer.pause();
+			wakeLockRelease();
 		} else {
+			wakeLockAcquire();
 			mediaPlayer.start();
 		}
 		updateNotificationMessage();
@@ -468,7 +493,9 @@ public class MusicService extends Service implements OnCompletionListener {
 	
 	/* Plays the next song */
 	public void nextItem() {
-		if(currentPlayingItem==null) return;
+		if(currentPlayingItem==null) {
+			return;
+		}
 		
 		if(repeat) {
 			playItem(currentPlayingItem);
@@ -481,7 +508,9 @@ public class MusicService extends Service implements OnCompletionListener {
 		}
 		
 		PlayableItem nextItem = currentPlayingItem.getNext(repeatAll);
-		if(nextItem!=null) {
+		if(nextItem==null) {
+			if(!isPlaying()) wakeLockRelease();
+		} else {
 			playItem(nextItem);
 		}
 	}

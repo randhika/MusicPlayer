@@ -36,6 +36,7 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 	private BrowserArrayAdapter browserArrayAdapter;
 	private SharedPreferences preferences;
 	private MainActivity activity;
+	private int lastFolderPosition; // Used to save the index of the first visible element in the previous folder list. This info will be used to restore list position when browsing back to the last directory. If <=0 no restore is performed.
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -220,7 +221,7 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 			builder.setMessage(R.string.baseFolderReachedMessage);
 			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
-					new ChangeDirTask(parentDir, null).execute();
+					new ChangeDirTask(parentDir, null, -1).execute();
 				}
 			});
 			builder.setNegativeButton(R.string.no, null);
@@ -231,7 +232,8 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 			});
 			builder.show();
 		} else {
-			new ChangeDirTask(parentDir, null).execute();
+			new ChangeDirTask(parentDir, null, lastFolderPosition).execute();
+			lastFolderPosition = -1;
 		}
 	}
 	
@@ -245,7 +247,8 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 	}
 	
 	public void gotoDirectory(File newDirectory, BrowserSong scrollToSong) {
-		new ChangeDirTask(newDirectory, scrollToSong).execute();
+		lastFolderPosition = listViewBrowser.getFirstVisiblePosition();
+		new ChangeDirTask(newDirectory, scrollToSong, -1).execute();
 	}
 	
 	private void addFolderToPlaylist(Playlist playlist, File folder) {
@@ -255,9 +258,11 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 	private class ChangeDirTask extends AsyncTask<Void, Void, Boolean> {
 		private File newDirectory;
 		private BrowserSong gotoSong;
-		public ChangeDirTask(File newDirectory, BrowserSong gotoSong) {
+		private int listScrolling;
+		public ChangeDirTask(File newDirectory, BrowserSong gotoSong, int listScrolling) {
 			this.newDirectory = newDirectory;
 			this.gotoSong = gotoSong;
+			this.listScrolling = listScrolling;
 		}
 		@Override
 		protected void onPreExecute() {
@@ -278,6 +283,9 @@ public class BrowserFragment extends MusicPlayerFragment implements OnItemClickL
 				updateListView(false);
 				if(gotoSong!=null) {
 					scrollToSong(gotoSong);
+				}
+				if(listScrolling>0) {
+					listViewBrowser.setSelectionFromTop(listScrolling, 0);
 				}
 			} else {
 				Toast.makeText(activity, R.string.dirError, Toast.LENGTH_SHORT).show();
